@@ -176,7 +176,7 @@ CLASS_DECLSPEC void FreeAllDLL(const fs::path& dirpath, const char* ex)
     for (const auto& entry : fs::directory_iterator(dirpath)) {
         if (entry.is_directory()) {
             // サブディレクトリが見つかった場合、再帰的に探索します
-            LoadAllDLL(entry.path(), ex);
+            FreeAllDLL(entry.path(), ex);
         }
         else if (entry.is_regular_file() && entry.path().extension() == ex) {
             auto dll = LoadLibraryA(entry.path().string().c_str());
@@ -200,6 +200,5 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpRese
         FreeAllDLL("mods", ".mx");
         break;
     }
-    return TRUE;
 }
 
