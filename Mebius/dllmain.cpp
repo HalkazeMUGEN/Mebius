@@ -190,14 +190,14 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpRese
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH: 
-        LoadAllDLL("./mods",".mx");
+        LoadAllDLL("mods",".mx");
         break;
     case DLL_THREAD_ATTACH:
         break;
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH: 
-        FreeAllDLL("./mods", ".mx");
+        FreeAllDLL("mods", ".mx");
         break;
     }
     return TRUE;
