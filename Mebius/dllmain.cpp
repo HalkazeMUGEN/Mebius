@@ -1,6 +1,6 @@
 ﻿// dllmain.cpp : DLL アプリケーションのエントリ ポイントを定義します。
 #include "pch.h"
-#include "Mebius.h"
+#include <Mebius.h>
 #include <vector>
 
 // プロトタイプ宣言
