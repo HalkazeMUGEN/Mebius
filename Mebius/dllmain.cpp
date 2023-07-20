@@ -31,7 +31,6 @@ int findTargetHookByStart(void* target) {
     return HOOK_NOT_FOUND;
 }
 
-
 int findTargetHookByReturn(void* target) {
     for (size_t i = 0; i < gHookList.size(); i++) {
         if (gHookList[i]->targetReturnAddr == target) {
@@ -61,10 +60,9 @@ void writeGotoOpcode(void* target, void* addr, H_TYPE mode) {
         bytes[0] = 0xE8;
     }
     void* func = (void*)((DWORD)addr - (DWORD)target - 5);
-    memcpy(&bytes[1], func, 4);
+    memcpy(&bytes[1], &func, 4);
     writeBytesToROM(target, bytes, 5);
 }
-
 
 void Head(void) {
     void** stack;
@@ -72,8 +70,8 @@ void Head(void) {
         MOV stack, EBP
     }
     // 先頭アドレスを検索してターゲットをオリジナルのバイト列に戻す
-    int index = findTargetHookByStart(*((stack + 1) - 5));
-    writeBytesToROM((void*)gHookList[index]->targetStartAddr, gHookList[index]->targetOrigBytes, 5);
+    int index = findTargetHookByStart((void*)((DWORD)*(stack + 1) - 5));
+    writeBytesToROM(gHookList[index]->targetStartAddr, gHookList[index]->targetOrigBytes, 5);
 
     // Headのリターンをターゲットのアドレスに変える
     *(stack + 1) = gHookList[index]->targetStartAddr;
@@ -82,10 +80,10 @@ void Head(void) {
     gHookList[index]->targetReturnAddr = *(stack + 2);
 
     // Tailへのフックコールを作成
-    writeGotoOpcode((void*)(*((stack + 2) - 5)), ESCAPE_EAX, CALL);
+    writeGotoOpcode((void*)((DWORD)*(stack + 2) - 5), ESCAPE_EAX, CALL);
 
     // ターゲットのリターンアドレスをターゲットの呼び出し位置にする
-    *(stack + 2) = *((stack + 2) - 5);
+    *(stack + 2) = (void*)((DWORD)*(stack + 2) - 5);
 
     for (size_t i = 0; i < gHookList[index]->cbHeadFuncAddr.size(); i++) {
         auto hooked = reinterpret_cast<void (*)(void)>(gHookList[index]->cbHeadFuncAddr[i]);
@@ -114,10 +112,10 @@ int __stdcall Tail(int RETVALUE) {
     int index = findTargetHookByReturn(*(stack + 1));
 
     // ターゲットのコール元をもとに戻す
-    writeGotoOpcode((void*)(*((stack + 1) - 5)), (void*)gHookList[index]->targetStartAddr, CALL);
+    writeGotoOpcode((void*)((DWORD)*(stack + 1) - 5), gHookList[index]->targetStartAddr, CALL);
 
     // Headへのフックコールを作成
-    writeGotoOpcode((void*)gHookList[index]->targetStartAddr, Head, CALL);
+    writeGotoOpcode(gHookList[index]->targetStartAddr, Head, CALL);
 
     int ret = RETVALUE;
     for (size_t i = 0; i < gHookList[index]->cbTailFuncAddr.size(); i++) {
@@ -128,7 +126,6 @@ int __stdcall Tail(int RETVALUE) {
     return ret;
 }
 
-
 CLASS_DECLSPEC void Hook(void* target, void* callback, H_TYPE flag) {
     // フック済みか検索
     int index = findTargetHookByStart(target);
@@ -137,7 +134,7 @@ CLASS_DECLSPEC void Hook(void* target, void* callback, H_TYPE flag) {
     if (index == HOOK_NOT_FOUND) {
         HOOK* h = new HOOK;
         h->targetStartAddr = target;
-        memcpy(h->targetOrigBytes, (void*)target, 5);
+        memcpy(h->targetOrigBytes, target, 5);
         // indexをリストの最後にする
         index = gHookList.size();
         gHookList.push_back(h);
@@ -171,7 +168,6 @@ CLASS_DECLSPEC void LoadAllDLL(const fs::path& dirpath, const char* ex)
     }
 }
 
-
 CLASS_DECLSPEC void FreeAllDLL(const fs::path& dirpath, const char* ex)
 {
     for (const auto& entry : fs::directory_iterator(dirpath)) {
@@ -185,7 +181,6 @@ CLASS_DECLSPEC void FreeAllDLL(const fs::path& dirpath, const char* ex)
         }
     }
 }
-
 
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
