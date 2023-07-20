@@ -40,7 +40,7 @@ int findTargetHookByReturn(void* target) {
     return HOOK_NOT_FOUND;
 }
 
-CLASS_DECLSPEC void writeBytesToROM(void* target, BYTE* bytes, size_t size) {
+void writeBytesToROM(void* target, BYTE* bytes, size_t size) {
     DWORD old = PAGE_EXECUTE_READ;
     VirtualProtect(target, size, PAGE_EXECUTE_READWRITE, &old);
     memcpy(target, bytes, size);
@@ -126,7 +126,7 @@ int __stdcall Tail(int RETVALUE) {
     return ret;
 }
 
-CLASS_DECLSPEC void Hook(void* target, void* callback, H_TYPE flag) {
+void Hook(void* target, void* callback, H_TYPE flag) {
     // フック済みか検索
     int index = findTargetHookByStart(target);
 
@@ -155,7 +155,7 @@ CLASS_DECLSPEC void Hook(void* target, void* callback, H_TYPE flag) {
     return;
 }
 
-CLASS_DECLSPEC void LoadAllDLL(const fs::path& dirpath, const char* ex)
+void LoadAllDLL(const fs::path& dirpath, const char* ex)
 {
     for (const auto& entry : fs::directory_iterator(dirpath)) {
         if (entry.is_directory()) {
@@ -168,7 +168,7 @@ CLASS_DECLSPEC void LoadAllDLL(const fs::path& dirpath, const char* ex)
     }
 }
 
-CLASS_DECLSPEC void FreeAllDLL(const fs::path& dirpath, const char* ex)
+void FreeAllDLL(const fs::path& dirpath, const char* ex)
 {
     for (const auto& entry : fs::directory_iterator(dirpath)) {
         if (entry.is_directory()) {
