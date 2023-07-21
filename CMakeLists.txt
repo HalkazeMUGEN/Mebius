@@ -57,7 +57,7 @@ target_compile_options (
 		/GR-
 		/guard:cf-
 		/MD
-		/O3
+		/O2
 		/Os
 		/Zc:inline
 	>

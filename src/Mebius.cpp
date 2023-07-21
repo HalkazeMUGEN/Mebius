@@ -156,7 +156,7 @@ void FreeAllDLL(const fs::path& dirpath, const char* ex)
         }
         else if (entry.is_regular_file() && entry.path().extension() == ex) {
             auto dll = LoadLibraryA(entry.path().string().c_str());
-            FreeLibrary(dll);
+            if (dll) FreeLibrary(dll);
         }
     }
 }
