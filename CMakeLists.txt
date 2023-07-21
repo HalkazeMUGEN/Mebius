@@ -52,12 +52,10 @@ target_compile_options (
 	/sdl
 	/utf-8
 	/WX-
-	/Yupch.h
 	/Zc:forScope
 	/Zc:inline
 	/Zc:wchar_t
 	$<$<CONFIG:Debug>:
-		/FP"build/x86-debug/Mebius.pch"
 		/GR
 		/JMC
 		/MDd
@@ -67,7 +65,6 @@ target_compile_options (
 		/ZI
 	>
 	$<$<CONFIG:Release>:
-		/FP"build/x86-release/Mebius.pch"
 		/GA
 		/GL
 		/GR-
