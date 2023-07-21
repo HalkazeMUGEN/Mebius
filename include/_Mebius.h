@@ -2,12 +2,6 @@
 #include "Mebius.h"
 #include <vector>
 
-void Head(void);
-void ESCAPE_EAX(void);
-int __stdcall Tail(int eax);
-int findTargetHookByStart(void* target);
-int findTargetHookByReturn(void* target);
-
 struct HOOK
 {
     void* targetStartAddr = NULL;
@@ -16,3 +10,11 @@ struct HOOK
     vector<void*> cbHeadFuncAddr;
     vector<void*> cbTailFuncAddr;
 };
+
+void Head(void);
+void ESCAPE_EAX(void);
+int __stdcall Tail(int eax);
+int findTargetHookByStart(void* target);
+int findTargetHookByReturn(void* target);
+
+extern vector<HOOK> gHookList;
