@@ -12,18 +12,13 @@ add_library (
 )
 add_library (${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-add_subdirectory(test)
-
 target_compile_features (${PROJECT_NAME} PRIVATE cxx_std_20)
 target_compile_definitions (
 	${PROJECT_NAME}
 	PRIVATE
-	MEBIUS
-	MEBIUS_EXPORTS
+	MEBIUS_EXPORT
 	WIN32
 	_WINDOWS
-	_USRDLL
-	_WINDLL
 	UNICODE
 	_UNICODE
 	$<$<CONFIG:Debug>: 
@@ -39,64 +34,45 @@ target_compile_options (
 	${PROJECT_NAME}
 	PRIVATE
 	/W4
-	/analyze-
 	/arch:AVX
-	/diagnostics:column
 	/EHsc
-	/FC
-	/fp:precise
-	/Gd
-	/Gm-
+	/fp:fast
 	/GS
+	/GT
+	/MP
 	/nologo
-	/Oy-
-	/permissive-
-	/sdl
+	/Oi
+	/Qpar
 	/utf-8
-	/WX-
-	/Zc:forScope
-	/Zc:inline
-	/Zc:wchar_t
 	$<$<CONFIG:Debug>:
 		/GR
-		/JMC
+		/guard:cf
 		/MDd
 		/Ob0
 		/Od
-		/RTC1
-		/ZI
+		/Zi
 	>
 	$<$<CONFIG:Release>:
-		/GA
 		/GL
 		/GR-
-		/Gy
 		/guard:cf-
 		/MD
-		/O1
-		/Oi
+		/O2
 		/Os
+		/Zc:inline
 	>
 )
 target_link_options (
 	${PROJECT_NAME}
 	PRIVATE
-	/DLL
-	/DYNAMICBASE
-	/MACHINE:X86
-	/NOLOGO
-	/NXCOMPAT
-	/SAFESEH
-	/SUBSYSTEM:WINDOWS
+	/LTCG
+	/nologo
 	$<$<CONFIG:Debug>:
-		/DEBUG
-		/INCREMENTAL
-		/OPT:NOREF
+		/debug
+		/opt:noref
 	>
 	$<$<CONFIG:Release>:
-		/LTCG:incremental
-		/OPT:ICF
-		/OPT:REF
+		/opt:ref
 	>
 )
 
