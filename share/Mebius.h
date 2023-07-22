@@ -8,8 +8,7 @@ namespace fs = std::filesystem;
 enum H_TYPE {
     HEAD,
     TAIL,
-    CALL,
-    JMP
+    CALL
 };
 
 enum HOOK_CODE {
@@ -28,4 +27,4 @@ CLASS_DECLSPEC void FreeAllDLL(const fs::path& dirpath, const char* ex);
 CLASS_DECLSPEC void Hook(void* target, void* callback, H_TYPE flag);
 CLASS_DECLSPEC void writeBytesToROM(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPEC void readBytesFromMem(void* target, BYTE* bytes, size_t size);
-CLASS_DECLSPEC void writeGotoOpcode(void* target, void* addr, H_TYPE mode);
+CLASS_DECLSPEC void writeCallOpcode(void* target, void* addr);

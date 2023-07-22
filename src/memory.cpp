@@ -11,14 +11,8 @@ void readBytesFromMem(void* target, BYTE* bytes, size_t size) {
     memcpy(bytes, target, size);
 }
 
-void writeGotoOpcode(void* target, void* addr, H_TYPE mode) {
-    BYTE bytes[5] = {};
-    if (mode == JMP) {
-        bytes[0] = 0xE9;
-    }
-    else {
-        bytes[0] = 0xE8;
-    }
+void writeCallOpcode(void* target, void* addr) {
+    BYTE bytes[5] = { 0xE8 };
     void* func = (void*)((DWORD)addr - (DWORD)target - 5);
     memcpy(&bytes[1], &func, 4);
     writeBytesToROM(target, bytes, 5);

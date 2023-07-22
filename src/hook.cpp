@@ -12,19 +12,27 @@ void Hook(void* target, void* callback, H_TYPE flag) {
         // indexをリストの最後にする
         index = gHookList.size();
         gHookList.push_back(h);
-        writeGotoOpcode(target, Head, CALL);
+        writeCallOpcode(target, Head);
     }
 
-    if (flag == H_TYPE::HEAD) {
+    switch (flag) {
+    case HEAD: {
         if (!count(gHookList[index].cbHeadFuncAddr.begin(), gHookList[index].cbHeadFuncAddr.end(), callback)) {
             gHookList[index].cbHeadFuncAddr.push_back(callback);
         }
+        break;
     }
-    else {
+    case TAIL: {
         if (!count(gHookList[index].cbTailFuncAddr.begin(), gHookList[index].cbTailFuncAddr.end(), callback)) {
             gHookList[index].cbTailFuncAddr.push_back(callback);
         }
+        break;
     }
+    default: {
+        break;
+    }
+    }
+
 
     return;
 }
@@ -45,7 +53,7 @@ void Head(void) {
     gHookList[index].targetReturnAddr = *(stack + 2);
 
     // Tailへのフックコールを作成
-    writeGotoOpcode((void*)((DWORD) * (stack + 2) - 5), ESCAPE_EAX, CALL);
+    writeCallOpcode((void*)((DWORD) * (stack + 2) - 5), ESCAPE_RET);
 
     // ターゲットのリターンアドレスをターゲットの呼び出し位置にする
     *(stack + 2) = (void*)((DWORD) * (stack + 2) - 5);
@@ -58,7 +66,7 @@ void Head(void) {
     return;
 }
 
-void ESCAPE_EAX(void) {
+void ESCAPE_RET(void) {
     _asm {
         XCHG EAX, [ESP]
         PUSH EAX
@@ -76,10 +84,10 @@ int __stdcall Tail(int RETVALUE) {
     int index = findTargetHookByReturn(*(stack + 1));
 
     // ターゲットのコール元をもとに戻す
-    writeGotoOpcode((void*)((DWORD) * (stack + 1) - 5), gHookList[index].targetStartAddr, CALL);
+    writeCallOpcode((void*)((DWORD) * (stack + 1) - 5), gHookList[index].targetStartAddr);
 
     // Headへのフックコールを作成
-    writeGotoOpcode(gHookList[index].targetStartAddr, Head, CALL);
+    writeCallOpcode(gHookList[index].targetStartAddr, Head);
 
     int ret = RETVALUE;
     for (size_t i = 0; i < gHookList[index].cbTailFuncAddr.size(); i++) {
