@@ -12,7 +12,7 @@ struct HOOK
 };
 
 void Head(void);
-void ESCAPE_EAX(void);
+void ESCAPE_RET(void);
 int __stdcall Tail(int eax);
 int findTargetHookByStart(void* target);
 int findTargetHookByReturn(void* target);
