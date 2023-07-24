@@ -8,6 +8,10 @@ void LoadAllDLL(const fs::path& dirpath, const char* ex)
             LoadAllDLL(entry.path(), ex);
         }
         else if (entry.is_regular_file() && entry.path().extension() == ex) {
+            std::stringstream log;
+            log << "Loading:" << entry.path().string().c_str();
+            MebLogWrite(log.str());
+
             LoadLibraryA(entry.path().string().c_str());
         }
     }
@@ -22,7 +26,12 @@ void FreeAllDLL(const fs::path& dirpath, const char* ex)
         }
         else if (entry.is_regular_file() && entry.path().extension() == ex) {
             auto dll = LoadLibraryA(entry.path().string().c_str());
-            if (dll) FreeLibrary(dll);
+            if (dll) {
+                std::stringstream log;
+                log << "Free:" << entry.path().string().c_str();
+                MebLogWrite(log.str());
+                FreeLibrary(dll);
+            }
         }
     }
 }
