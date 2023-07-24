@@ -28,3 +28,4 @@ CLASS_DECLSPEC void Hook(void* target, void* callback, H_TYPE flag);
 CLASS_DECLSPEC void writeBytesToROM(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPEC void readBytesFromMem(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPEC void writeCallOpcode(void* target, void* addr);
+CLASS_DECLSPEC void MebLogWrite(const std::string& content);
