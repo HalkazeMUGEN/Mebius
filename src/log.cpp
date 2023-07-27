@@ -9,7 +9,7 @@ void MebLogWrite(const std::string& content) {
 		isFirst = FALSE;
 		logfile.open("mebius.log");
 		logfile << "----------------------------------\n";
-		logfile << "Mebius Loader ver 0.0.5 status log\n";
+		logfile << "Mebius Loader ver 1.0.0 status log\n";
 		logfile << "----------------------------------\n";
 	}
 	else {
