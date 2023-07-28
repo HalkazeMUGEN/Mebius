@@ -16,5 +16,6 @@ void ESCAPE_RET(void);
 int __stdcall Tail(int eax);
 int findTargetHookByStart(void* target);
 int findTargetHookByReturn(void* target);
+int addHook(void* target);
 
 extern vector<HOOK> gHookList;
