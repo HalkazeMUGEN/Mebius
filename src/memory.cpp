@@ -11,19 +11,20 @@ void readBytesFromMem(void* target, BYTE* bytes, size_t size) {
     memcpy(bytes, target, size);
 }
 
-void writeCallOpcode(void* target, void* addr) {
-    BYTE bytes[5] = { 0xE8 };
+void writeJumpOpcode(void* target, void* addr, SETEIP_TYPE type) {
+    BYTE bytes[5];
+    if (type == OP_CALL) {
+        bytes[0] = { 0xE8 };
+    }
+    else {
+        bytes[0] = { 0xE9 };
+    }
     writeOffset(target, addr, &bytes[1]);
-}
-
-void writeJmpOpcode(void* target, void* addr) {
-    BYTE bytes[5] = { 0xE9 };
-    writeOffset(target, addr, &bytes[1]);
+    writeBytesToROM(target, bytes, 5);
 }
 
 void writeOffset(void* target, void* addr, BYTE* bytes) {
     void* func = (void*)((DWORD)addr - (DWORD)target - 5);
-    memcpy(&bytes[1], &func, 4);
-    writeBytesToROM(target, bytes, 5);
+    memcpy(bytes, &func, 4);
 }
 

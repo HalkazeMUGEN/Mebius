@@ -1,24 +1,24 @@
 #pragma once
 #include "Mebius.h"
+#include <unordered_map>
+#include <deque>
 #include <vector>
 
 struct HOOK
 {
-    void* targetStartAddr = NULL;
-    void* targetReturnAddr = NULL;
-    BYTE *targetOrigBytes;
+    BYTE *trampolineCode = nullptr;
+    deque<void*> returnAddr;
     vector<void*> cbHeadFuncAddr;
     vector<void*> cbTailFuncAddr;
 };
 
-void Head(void);
-void ESCAPE_RET(void);
-int __stdcall Tail(int eax);
-int findTargetHookByStart(void* target);
-int findTargetHookByReturn(void* target);
-int addHook(void* target);
-void writeOffset(void* target, void* addr, BYTE* bytes);
-int calcTrampolineSize(void* target);
+extern unordered_map<void*, HOOK> gHookList;
 
-extern vector<HOOK> gHookList;
+void createHook(void* target);
+int calcTrampolineSize(void* target);
+void Head(void);
+int __stdcall Tail(int RETVALUE);
+void Tail_Escape(void);
+void writeOffset(void* target, void* addr, BYTE* bytes);
+
 

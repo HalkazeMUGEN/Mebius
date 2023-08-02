@@ -5,9 +5,9 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-enum HOOK_CODE {
-    HOOK_FOUND = 0,
-    HOOK_NOT_FOUND = -1
+enum SETEIP_TYPE {
+    OP_CALL,
+    OP_JMP
 };
 
 #ifdef MEBIUS_EXPORT
@@ -22,8 +22,7 @@ CLASS_DECLSPECEC void LoadAllDLL(const fs::path& dirpath, const char* ex);
 CLASS_DECLSPECEC void FreeAllDLL(const fs::path& dirpath, const char* ex);
 CLASS_DECLSPECEC void writeBytesToROM(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPECEC void readBytesFromMem(void* target, BYTE* bytes, size_t size);
-CLASS_DECLSPECEC void writeCallOpcode(void* target, void* addr);
-CLASS_DECLSPECEC void writeJmpOpcode(void* target, void* addr);
+CLASS_DECLSPECEC void writeJumpOpcode(void* target, void* addr, SETEIP_TYPE type);
 CLASS_DECLSPECEC void MebLogWrite(const std::string& content);
 CLASS_DECLSPEC void Hook(void* target, void (*head)(void**));
 CLASS_DECLSPEC void Hook(void* target, int (*tail)(void**, int));

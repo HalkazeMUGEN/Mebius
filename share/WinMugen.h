@@ -4343,7 +4343,7 @@ typedef enum MUGEN_ASSERT_SPECIAL_TYPE_ {
 
 static auto ParsePosType = reinterpret_cast<int (*)(const char* postypeStr)>(0x47db40);
 static auto ParseSpecialFlag = reinterpret_cast<int (*)(const char* flagStr, MUGEN_ASSERT_SPECIAL_TYPE* asType, MUGEN_ASSERT_SPECIAL_ID* asId)> (0x46aa60);
-static auto GetQuotedString = reinterpret_cast<int (*)(TPFILE * tpf, const char* label, const char* dest, int size, int zero = 0)>(0x415df0);
+static auto GetQuotedString = reinterpret_cast<int (*)(TPFILE * tpf, const char* label, const char* dest, int size, int zero)>(0x415df0);
 static auto TPGetValue = reinterpret_cast<const char* (*)(TPFILE * tpf, const char* label)>(0x483b30);
 static auto TPAccessFirstLine = reinterpret_cast<const char* (*)(TPFILE * tpf)>(0x483f10);
 static auto TPAccessNextLine = reinterpret_cast<const char* (*)(TPFILE * tpf)>(0x483f90);
