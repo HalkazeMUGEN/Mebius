@@ -1,4 +1,4 @@
-#include "_Mebius.h"
+#include <_Mebius.h>
 
 void writeBytesToROM(void* target, BYTE* bytes, size_t size) {
     DWORD old = PAGE_EXECUTE_READ;
@@ -13,11 +13,17 @@ void readBytesFromMem(void* target, BYTE* bytes, size_t size) {
 
 void writeCallOpcode(void* target, void* addr) {
     BYTE bytes[5] = { 0xE8 };
+    writeOffset(target, addr, &bytes[1]);
+}
+
+void writeJmpOpcode(void* target, void* addr) {
+    BYTE bytes[5] = { 0xE9 };
+    writeOffset(target, addr, &bytes[1]);
+}
+
+void writeOffset(void* target, void* addr, BYTE* bytes) {
     void* func = (void*)((DWORD)addr - (DWORD)target - 5);
     memcpy(&bytes[1], &func, 4);
     writeBytesToROM(target, bytes, 5);
 }
-
-
-
 

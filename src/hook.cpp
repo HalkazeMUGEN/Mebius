@@ -1,4 +1,5 @@
-#include "_Mebius.h"
+#include <_Mebius.h>
+#include <Zydis.h>
 
 void Hook(void* target, void (*head)(void**)) {
     // フック済みか検索
@@ -33,12 +34,38 @@ void Hook(void* target, int (*tail)(void**, int)) {
 int addHook(void* target) {
     HOOK h;
     h.targetStartAddr = target;
-    memcpy(h.targetOrigBytes, target, 5);
+
+    // ディスアセンブル
+    PDWORD old;
+    int size = calcTrampolineSize(target);
+    h.targetOrigBytes = new BYTE[size + 5];
+    memcpy(h.targetOrigBytes, target, size);
+    writeJmpOpcode(h.targetOrigBytes + size, (void*)((DWORD)target + size));
+    VirtualProtect(h.targetOrigBytes, size + 5, PAGE_EXECUTE_READWRITE, old);
+
     // indexをリストの最後にする
     int index = gHookList.size();
     gHookList.push_back(h);
     writeCallOpcode(target, Head);
     return index;
+}
+
+int calcTrampolineSize(void* target) {
+    ZyanU32 runtime_address = (DWORD)target;
+    ZyanU8* data = (ZyanU8*)target;
+    ZyanUSize offset = 0;
+    ZydisDisassembledInstruction instruction;
+    int length = 5;
+    while (length > offset && ZYAN_SUCCESS(ZydisDisassembleIntel(
+       ZYDIS_MACHINE_MODE_LONG_COMPAT_32,
+       runtime_address,
+       data + offset,
+       sizeof(data) - offset,
+       &instruction
+    ))) {
+        offset += instruction.info.length;
+        runtime_address += instruction.info.length;
+    }
 }
 
 void Head(void) {

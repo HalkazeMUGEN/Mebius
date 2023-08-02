@@ -23,6 +23,7 @@ CLASS_DECLSPECEC void FreeAllDLL(const fs::path& dirpath, const char* ex);
 CLASS_DECLSPECEC void writeBytesToROM(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPECEC void readBytesFromMem(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPECEC void writeCallOpcode(void* target, void* addr);
+CLASS_DECLSPECEC void writeJmpOpcode(void* target, void* addr);
 CLASS_DECLSPECEC void MebLogWrite(const std::string& content);
 CLASS_DECLSPEC void Hook(void* target, void (*head)(void**));
 CLASS_DECLSPEC void Hook(void* target, int (*tail)(void**, int));
