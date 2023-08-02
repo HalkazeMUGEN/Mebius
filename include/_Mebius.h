@@ -18,6 +18,7 @@ int findTargetHookByStart(void* target);
 int findTargetHookByReturn(void* target);
 int addHook(void* target);
 void writeOffset(void* target, void* addr, BYTE* bytes);
+int calcTrampolineSize(void* target);
 
 extern vector<HOOK> gHookList;
 

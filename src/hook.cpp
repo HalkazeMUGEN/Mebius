@@ -1,5 +1,5 @@
 #include <_Mebius.h>
-#include <Zydis.h>
+#include <Zydis/Zydis.h>
 
 void Hook(void* target, void (*head)(void**)) {
     // フック済みか検索
@@ -66,6 +66,7 @@ int calcTrampolineSize(void* target) {
         offset += instruction.info.length;
         runtime_address += instruction.info.length;
     }
+    return offset;
 }
 
 void Head(void) {
