@@ -1,44 +1,62 @@
-#include "_Mebius.h"
+#include <_Mebius.h>
+#include <Zydis/Zydis.h>
+
+int calcTrampolineSize(void* target) {
+    ZyanU32 runtime_address = (DWORD)target;
+    ZyanU8* data = (ZyanU8*)target;
+    ZyanUSize offset = 0;
+    ZydisDisassembledInstruction instruction;
+    unsigned int length = 10;
+    while (length > offset && ZYAN_SUCCESS(ZydisDisassembleIntel(
+        ZYDIS_MACHINE_MODE_LEGACY_32,
+        runtime_address,
+        data + offset,
+        0x7FFFFFFF,
+        &instruction
+    ))) {
+        offset += instruction.info.length;
+        runtime_address += instruction.info.length;
+    }
+    return offset;
+}
+
+void createHook(void* target) {
+    // Hook済みなら終了
+    auto it = gHookList.find(target);
+    if (it != gHookList.end()) return;
+
+    HOOK h;
+    // トランポリン作成
+    DWORD old = 0;
+    int size = calcTrampolineSize(target);
+    h.trampolineCode = new BYTE[size + 5];
+    memcpy(h.trampolineCode, target, size);
+    writeJumpOpcode(h.trampolineCode + size, (void*)((DWORD)target + size), OP_JMP);
+    VirtualProtect(h.trampolineCode, size + 5, PAGE_EXECUTE_READWRITE, &old);
+    writeJumpOpcode(target, Head, OP_CALL);
+    writeJumpOpcode((void*)((DWORD)target + 5), Tail_Escape, OP_CALL);
+    // Hookを追加
+    gHookList.emplace(target, h);
+
+    return;
+}
 
 void Hook(void* target, void (*head)(void**)) {
-    // フック済みか検索
-    int index = findTargetHookByStart(target);
-
-    // もしフックが存在しなければ
-    if (index == HOOK_NOT_FOUND) {
-        index = addHook(target);
-    }
-
-    if (!count(gHookList[index].cbHeadFuncAddr.begin(), gHookList[index].cbHeadFuncAddr.end(), head)) {
-        gHookList[index].cbHeadFuncAddr.push_back(head);
-    }
+    // Hookを作成
+    createHook(target);
+    // head_hookを追加
+    auto it = gHookList.find(target);
+    it->second.cbHeadFuncAddr.push_back(head);
     return;
 }
 
 void Hook(void* target, int (*tail)(void**, int)) {
-    // フック済みか検索
-    int index = findTargetHookByStart(target);
-
-    // もしフックが存在しなければ
-    if (index == HOOK_NOT_FOUND) {
-        index = addHook(target);
-    }
-
-    if (!count(gHookList[index].cbTailFuncAddr.begin(), gHookList[index].cbTailFuncAddr.end(), tail)) {
-        gHookList[index].cbTailFuncAddr.push_back(tail);
-    }
+    // Hookを作成
+    createHook(target);
+    // tail_hookを追加
+    auto it = gHookList.find(target);
+    it->second.cbTailFuncAddr.push_back(tail);
     return;
-}
-
-int addHook(void* target) {
-    HOOK h;
-    h.targetStartAddr = target;
-    memcpy(h.targetOrigBytes, target, 5);
-    // indexをリストの最後にする
-    int index = gHookList.size();
-    gHookList.push_back(h);
-    writeCallOpcode(target, Head);
-    return index;
 }
 
 void Head(void) {
@@ -47,33 +65,33 @@ void Head(void) {
         MOV stack, EBP
         ADD stack, 0x04
     }
-    // 先頭アドレスを検索してターゲットをオリジナルのバイト列に戻す
-    int index = findTargetHookByStart((void*)((DWORD)*stack - 5));
-    writeBytesToROM(gHookList[index].targetStartAddr, gHookList[index].targetOrigBytes, 5);
 
-    // Headのリターンをターゲットのアドレスに変える
-    *stack = gHookList[index].targetStartAddr;
+    // ターゲットを特定
+    auto it = gHookList.find((void*)((DWORD)*stack - 5));
+    HOOK& h = it->second;
 
-    // ターゲットのリターンアドレスを保存する
-    gHookList[index].targetReturnAddr = *(stack + 1);
+    // ターゲットのリターンアドレスを保存
+    h.returnAddr.push_back((void*)*(stack + 1));
 
-    // Tailへのフックコールを作成
-    writeCallOpcode((void*)((DWORD) * (stack + 1) - 5), ESCAPE_RET);
+    // ターゲットのリターンアドレスをTailの呼び出し位置にする
+    *(stack + 1) = (void*)((DWORD) * (stack));
 
-    // ターゲットのリターンアドレスをターゲットの呼び出し位置にする
-    *(stack + 1) = (void*)((DWORD) * (stack + 1) - 5);
+    // Headのリターンアドレスをトランポリンに変更
+    *stack = h.trampolineCode;
 
-    for (size_t i = 0; i < gHookList[index].cbHeadFuncAddr.size(); i++) {
-        auto hooked = reinterpret_cast<void (*)(void**)>(gHookList[index].cbHeadFuncAddr[i]);
-        hooked(stack + 2);
+    // head_hookをすべて実行
+    for (void *addr : h.cbHeadFuncAddr) {
+        auto hook_head = reinterpret_cast<void (*)(void**)>(addr);
+        hook_head(stack + 2);
     }
 
     return;
 }
 
-void ESCAPE_RET(void) {
+
+void __declspec(naked) Tail_Escape(void) {
     _asm {
-        XCHG EAX, [ESP]
+        XCHG [ESP], EAX
         PUSH EAX
         JMP Tail
     }
@@ -86,20 +104,19 @@ int __stdcall Tail(int RETVALUE) {
         ADD stack, 0x04
     }
 
-    // リターンアドレスを検索
-    int index = findTargetHookByReturn(*stack);
+    // ターゲットを特定
+    auto it = gHookList.find((void*)((DWORD)*stack - 10));
+    HOOK& h = it->second;
 
-    // ターゲットのコール元をもとに戻す
-    writeCallOpcode((void*)((DWORD)*stack - 5), gHookList[index].targetStartAddr);
+    // Tailのリターンをターゲットのリターンに修復
+    *stack = h.returnAddr.back();
+    h.returnAddr.pop_back();
 
-    // Headへのフックコールを作成
-    writeCallOpcode(gHookList[index].targetStartAddr, Head);
-
-    int ret = RETVALUE;
-    for (size_t i = 0; i < gHookList[index].cbTailFuncAddr.size(); i++) {
-        auto hooked = reinterpret_cast<int (*)(void**, int)>(gHookList[index].cbTailFuncAddr[i]);
-        ret = hooked(stack + 2, RETVALUE);
+    // tail_hookをすべて実行
+    for (void* addr : h.cbTailFuncAddr) {
+        auto hook_tail = reinterpret_cast<int (*)(void**, int)>(addr);
+        RETVALUE = hook_tail(stack + 2, RETVALUE);
     }
 
-    return ret;
+    return RETVALUE;
 }

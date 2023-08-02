@@ -1,4 +1,4 @@
-﻿cmake_minimum_required (VERSION 3.12)
+﻿cmake_minimum_required (VERSION 3.15)
 
 project (Mebius VERSION 0.1.0 LANGUAGES CXX)
 
@@ -11,6 +11,11 @@ add_library (
 	${include}
 )
 add_library (${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+option(ZYDIS_BUILD_TOOLS "" OFF)
+option(ZYDIS_BUILD_EXAMPLES "" OFF)
+add_subdirectory("deps/zydis")
+target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)
 
 target_compile_features (${PROJECT_NAME} PRIVATE cxx_std_20)
 target_compile_definitions (
@@ -46,20 +51,23 @@ target_compile_options (
 	/utf-8
 	$<$<CONFIG:Debug>:
 		/GR
-		/guard:cf
+		/JMC
 		/MDd
 		/Ob0
 		/Od
-		/Zi
+		/RTC1
+		/ZI
 	>
 	$<$<CONFIG:Release>:
+		/GA
 		/GL
 		/GR-
+		/Gy
 		/guard:cf-
 		/MD
 		/O2
+		/Oi
 		/Os
-		/Zc:inline
 	>
 )
 target_link_options (
