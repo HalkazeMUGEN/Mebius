@@ -18,6 +18,7 @@ add_subdirectory("deps/zydis")
 target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)
 
 set(ASMTK_STATIC ON)
+set(ASMJIT_STATIC ON)
 set(ASMTK_BUILD_TEST OFF)
 include("deps/asmtk/CMakeLists.txt")
 target_link_libraries(${PROJECT_NAME} PRIVATE asmjit)
