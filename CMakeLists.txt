@@ -17,6 +17,12 @@ option(ZYDIS_BUILD_EXAMPLES "" OFF)
 add_subdirectory("deps/zydis")
 target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)
 
+set(ASMTK_STATIC ON)
+set(ASMTK_BUILD_TEST OFF)
+include("deps/asmtk/CMakeLists.txt")
+target_link_libraries(${PROJECT_NAME} PRIVATE asmjit)
+target_link_libraries(${PROJECT_NAME} PRIVATE asmtk)
+
 target_compile_features (${PROJECT_NAME} PRIVATE cxx_std_20)
 target_compile_definitions (
 	${PROJECT_NAME}
@@ -88,6 +94,8 @@ target_include_directories (
 	${PROJECT_NAME}
 	PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${ASMTK_INCLUDE_DIRS}
+	${ASMJIT_INCLUDE_DIRS}
 )
 
 target_include_directories (

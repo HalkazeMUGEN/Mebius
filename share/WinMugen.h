@@ -4166,10 +4166,9 @@ static int32_t (*const AnimGetLooptime)(MUGEN_ANIM_USED* anim) = (int32_t(*const
 static int32_t (*const AnimPerArrayAdd)(MUGEN_ANIM_INFO_EX* animPerArray, MUGEN_ANIM_INFO_EX* anim, MUGEN_SFF_INFO_EX* sff, int32_t /*_unknown*/, int32_t animNo, int32_t posX, int32_t posY, int32_t hFlip, int32_t /*_unknown*/) = (int32_t(*const)(MUGEN_ANIM_INFO_EX*, MUGEN_ANIM_INFO_EX*, MUGEN_SFF_INFO_EX*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t))0x404df0;
 static void (*const AnimPerArraySetNo)(MUGEN_ANIM_INFO_EX* animPerArray, int32_t id, int32_t under) = (void (*const)(MUGEN_ANIM_INFO_EX*, int32_t, int32_t))0x404f80;
 static void (*const AnimPerArrayUpdate)(MUGEN_ANIM_INFO_EX* animInfoEx) = (void (*const)(MUGEN_ANIM_INFO_EX*))0x404fd0;
-static void (*const ShowExp)(char* errmsg, const MUGEN_EVAL_VALUE* eval, MUGEN_PLAYER* player) = (void (*const)(char*, const MUGEN_EVAL_VALUE*, MUGEN_PLAYER*))0x4073e0;
-static int32_t (*const EvalExpressionI)(MUGEN_PLAYER* player, MUGEN_EVAL_VALUE* eval, uint32_t noWarning) = (int32_t(*const)(MUGEN_PLAYER*, MUGEN_EVAL_VALUE*, uint32_t))0x4075e0;
+static void (*const ShowExp)(const char* errmsg, const MUGEN_EVAL_VALUE* eval, MUGEN_PLAYER* player) = (void (*const)(const char*, const MUGEN_EVAL_VALUE*, MUGEN_PLAYER*))0x4073e0;
+static int32_t (*const EvalExpressionI)(MUGEN_PLAYER* player, MUGEN_EVAL_VALUE* eval, uint32_t warnNo) = (int32_t(*const)(MUGEN_PLAYER*, MUGEN_EVAL_VALUE*, uint32_t))0x4075e0;
 static float (*const EvalExpressionF)(MUGEN_PLAYER* player, MUGEN_EVAL_VALUE* eval) = (float (*const)(MUGEN_PLAYER*, MUGEN_EVAL_VALUE*))0x4076d0;
-static int32_t (*const EvalExpression)(MUGEN_PLAYER* player, MUGEN_EVAL_VALUE* eval, int32_t* pInt, float* pFloat) = (int32_t(*const)(MUGEN_PLAYER*, MUGEN_EVAL_VALUE*, int32_t*, float*))0x407780;
 static void (*const ArrayDelete)(ABSTRUCT_ARRAY_INFO* info, int32_t index) = (void (*const)(ABSTRUCT_ARRAY_INFO*, int32_t))0x408d10;
 static void (*const ArrayClear)(ABSTRUCT_ARRAY_INFO* info) = (void (*const)(ABSTRUCT_ARRAY_INFO*))0x408de0;
 static int32_t (*const ArrayFind)(ABSTRUCT_ARRAY_INFO* pInfo, int32_t key1, int32_t key2) = (int32_t(*const)(ABSTRUCT_ARRAY_INFO*, int32_t, int32_t))0x408f50;
@@ -4177,17 +4176,17 @@ static void* (*const ArrayAccessGrpItem)(ABSTRUCT_ARRAY_INFO* info, int32_t key1
 static void* (*const ArrayScanFirst)(ABSTRUCT_ARRAY_INFO* pInfo) = (void* (*const)(ABSTRUCT_ARRAY_INFO*))0x409240;
 static void* (*const ArrayScanNext)(ABSTRUCT_ARRAY_INFO* pInfo) = (void* (*const)(ABSTRUCT_ARRAY_INFO*))0x4092b0;
 static void (*const ClipboardClear)(MUGEN_CLIPBOARD* clipboard) = (void (*const)(MUGEN_CLIPBOARD*))0x413180;
-static void (*const ClipboardPrint)(MUGEN_CLIPBOARD* clipboard, char* message, ...) = (void (*const)(MUGEN_CLIPBOARD*, char*, ...))0x4131a0;
-static void (*const ClipboardAppend)(MUGEN_CLIPBOARD* clipboard, char* message, ...) = (void (*const)(MUGEN_CLIPBOARD*, char*, ...))0x4131f0;
+static void (*const ClipboardPrint)(MUGEN_CLIPBOARD* clipboard, const char* message, ...) = (void (*const)(MUGEN_CLIPBOARD*, const char*, ...))0x4131a0;
+static void (*const ClipboardAppend)(MUGEN_CLIPBOARD* clipboard, const char* message, ...) = (void (*const)(MUGEN_CLIPBOARD*, const char*, ...))0x4131f0;
 static void (*const KBClearCommandValidTimes)(MUGEN_COMMAND_TIMES* commandTimes) = (void (*const)(MUGEN_COMMAND_TIMES*))0x414300;
 static void (*const KBClearCommandLastTimes)(MUGEN_COMMAND_TIMES* commandTimes) = (void (*const)(MUGEN_COMMAND_TIMES*))0x414320;
 static uint32_t (*const KBCommandIsValid)(MUGEN_COMMAND_TIMES* commandTimes, int32_t commandIndex) = (uint32_t(*const)(MUGEN_COMMAND_TIMES*, int32_t))0x414380;
-static void (*const Warn)(MUGEN_PLAYER* player, char* warnMessage) = (void (*const)(MUGEN_PLAYER*, char*))0x4155f0;
-static void (*const VWarn)(MUGEN_PLAYER* player, char* warningMessage, ...) = (void (*const)(MUGEN_PLAYER* player, char* warningMessage, ...))0x415630;
-static void (*const WarnR)(MUGEN_PLAYER* player, MUGEN_PLAYER* redirectTo, char* warnMessage) = (void (*const)(MUGEN_PLAYER*, MUGEN_PLAYER*, char*))0x4156a0;
+static void (*const Warn)(MUGEN_PLAYER* player, const char* warnMessage) = (void (*const)(MUGEN_PLAYER*, const char*))0x4155f0;
+static void (*const VWarn)(MUGEN_PLAYER* player, const char* warningMessage, ...) = (void (*const)(MUGEN_PLAYER* player, const char* warningMessage, ...))0x415630;
+static void (*const WarnR)(MUGEN_PLAYER* player, MUGEN_PLAYER* redirectTo, const char* warnMessage) = (void (*const)(MUGEN_PLAYER*, MUGEN_PLAYER*, const char*))0x4156a0;
 static void (*const ErrorExit)(void) = (void (*const)(void))0x415860;
 static void (*const DrawToScreen)(void) = (void (*const)(void))0x4174e0;
-static void (*const DebugErrorExit)(char* errorMsg) = (void (*const)(char*))0x4187d0;
+static void (*const DebugErrorExit)(const char* errorMsg) = (void (*const)(const char*))0x4187d0;
 static void (*const ExplodArrayUpdate)(MUGEN_EXPLODS_INFO* explodsInfo) = (void (*const)(MUGEN_EXPLODS_INFO*))0x419060;
 static void (*const ExplodArrayReset)(MUGEN_EXPLODS_INFO* explods) = (void (*const)(MUGEN_EXPLODS_INFO*))0x4199e0;
 static void (*const ExplodMakeFromInfo)(MUGEN_PLAYER* player, MUGEN_SC_PARAMS_EX_EXPLOD* paramsEx, MUGEN_PLAYER_REDIRECTS* redirects) = (void (*const)(MUGEN_PLAYER*, MUGEN_SC_PARAMS_EX_EXPLOD*, MUGEN_PLAYER_REDIRECTS*))0x419a20;
@@ -4341,19 +4340,39 @@ typedef enum MUGEN_ASSERT_SPECIAL_TYPE_ {
     TYPE_AS_PLAYER
 } MUGEN_ASSERT_SPECIAL_TYPE;
 
-static auto ParsePosType = reinterpret_cast<int (*)(const char* postypeStr)>(0x47db40);
-static auto ParseSpecialFlag = reinterpret_cast<int (*)(const char* flagStr, MUGEN_ASSERT_SPECIAL_TYPE* asType, MUGEN_ASSERT_SPECIAL_ID* asId)> (0x46aa60);
-static auto GetQuotedString = reinterpret_cast<int (*)(TPFILE * tpf, const char* label, const char* dest, int size, int zero)>(0x415df0);
-static auto TPGetValue = reinterpret_cast<const char* (*)(TPFILE * tpf, const char* label)>(0x483b30);
+struct MUGEN_SC_DATA_EX_ {
+    MUGEN_TRIGGER_INFO* triggers;
+    uint32_t triggerCnt;
+    int32_t persistent;
+    int32_t ignorehitpause;
+    int scID;
+    int exscID;
+    void *params;
+    undefined4 unused_1;
+    undefined4 unused_2;
+    MUGEN_EVAL_VALUE unused_params[5];
+    MUGEN_SC_PARAMS_EX unused_paramsEx;
+} typedef MUGEN_SC_DATA_EX;
+
 static auto TPAccessFirstLine = reinterpret_cast<const char* (*)(TPFILE * tpf)>(0x483f10);
 static auto TPAccessNextLine = reinterpret_cast<const char* (*)(TPFILE * tpf)>(0x483f90);
+static auto TPGetValue = reinterpret_cast<const char* (*)(TPFILE * tpf, const char* label)>(0x483b30);
+
 static auto ConstExpI = reinterpret_cast<void (*)(MUGEN_EVAL_VALUE * eval, int value)>(0x406f20);
 static auto ConstExpF = reinterpret_cast<void (*)(MUGEN_EVAL_VALUE * eval, float value)>(0x406fa0);
-static auto FreeExpression = reinterpret_cast<void (*)(MUGEN_EVAL_VALUE * eval)>(0x406e00);
-static auto SCtrlParseTrigger = reinterpret_cast<int (*)(char* s, MUGEN_PLAYER_INFO * playerInfo, MUGEN_EVAL_TRIGGER * triggers, MUGEN_EVAL_TYPE * types, int maxLength, char** endptr)>(0x477920);
+static auto SCtrlReadExpList = reinterpret_cast<int (*)(const char* value, const char* format, MUGEN_PLAYER_INFO * playerInfo, const char** parseEnd, ...)>(0x47d780);
 static auto SCtrlReadExpListArray = reinterpret_cast<int (*)(const char params, const char* format, MUGEN_PLAYER_INFO * playerInfo, const char** parseEnd, void* evaltype, void* evallist, int* numTrigChars, DWORD param8)>(0x47D980);
 
+static auto GetQuotedString = reinterpret_cast<int (*)(TPFILE * tpf, const char* label, const char* dest, int size, int zero)>(0x415df0);
+static auto ParseSpecialFlag = reinterpret_cast<int (*)(const char* flagStr, MUGEN_ASSERT_SPECIAL_TYPE * asType, MUGEN_ASSERT_SPECIAL_ID * asID)> (0x46aa60);
+static auto ParsePosType = reinterpret_cast<int (*)(const char* postypeStr)>(0x47db40);
 
+static auto EvalExpression = reinterpret_cast<MUGEN_EVAL_TYPE(*)(MUGEN_PLAYER * player, MUGEN_EVAL_VALUE * eval, int32_t * pInt, float* pFloat)>(0x407780);
+static auto FreeExpression = reinterpret_cast<void (*)(MUGEN_EVAL_VALUE * eval)>(0x406e00);
+
+static auto SCtrlParseTrigger = reinterpret_cast<int (*)(const char* s, MUGEN_PLAYER_INFO * playerInfo, MUGEN_EVAL_TRIGGER * triggers, MUGEN_EVAL_TYPE * types, int maxLength, const char** endptr)>(0x477920);
+static auto SCtrlParseElemType = reinterpret_cast<bool (*)(TPFILE * tpf, MUGEN_SC_DATA_EX * sinfo, MUGEN_PLAYER_INFO * playerInfo)>(0x46aa60);
+static auto SCtrlRCElemFree = reinterpret_cast<void (*)(MUGEN_SC_DATA_EX * sinfo)>(0x4718d0);
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 #define _NALLEG40

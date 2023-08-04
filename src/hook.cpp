@@ -1,7 +1,27 @@
 #include <_Mebius.h>
 #include <Zydis/Zydis.h>
+#include <asmjit/asmjit.h>
+#include <asmtk/asmtk.h>
 
-int calcTrampolineSize(void* target) {
+using namespace asmjit;
+using namespace asmtk;
+
+int createTrampoline(void* target) {
+    Environment env(Arch::kX86);
+    CodeHolder code;
+    code.init(env);
+
+    // Attach x86::Assembler to `code`.
+    x86::Assembler a(&code);
+    AsmParser p(&a);
+
+    Error err = p.parse(
+        "mov eax, ebx\n"
+        "ret\n");
+
+
+
+
     ZyanU32 runtime_address = (DWORD)target;
     ZyanU8* data = (ZyanU8*)target;
     ZyanUSize offset = 0;
@@ -27,11 +47,11 @@ void createHook(void* target) {
 
     HOOK h;
     // トランポリン作成
-    DWORD old = 0;
-    int size = calcTrampolineSize(target);
+    int size = createTrampoline(target);
     h.trampolineCode = new BYTE[size + 5];
     memcpy(h.trampolineCode, target, size);
     writeJumpOpcode(h.trampolineCode + size, (void*)((DWORD)target + size), OP_JMP);
+    DWORD old = 0;
     VirtualProtect(h.trampolineCode, size + 5, PAGE_EXECUTE_READWRITE, &old);
     writeJumpOpcode(target, Head, OP_CALL);
     writeJumpOpcode((void*)((DWORD)target + 5), Tail_Escape, OP_CALL);
