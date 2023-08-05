@@ -1,17 +1,16 @@
-#include <_Hook.hpp>
+#include "_Hook.hpp"
+#include "Error.hpp"
 
 #include <Windows.h>
 #include <Zydis/Zydis.h>
 #include <format>
-#include <stdexcept>
-
 
 
 using namespace mebius;
 
-static inline const byte* make_trampoline_code(uint32_t address) noexcept;
+static inline const code_t* make_trampoline_code(uint32_t address) noexcept;
 static inline size_t calc_assembly_length(uint32_t address) noexcept;
-static inline std::pair<bool, HookDataImpl&> AddHookData(uint32_t address) noexcept;
+static inline std::pair<bool, HookDataImpl&> add_hook_data(uint32_t address) noexcept;
 static inline void write_call_opcode(uint32_t address, const void* func);
 static inline void write_jmp_opcode(uint32_t address, const void* func) noexcept;
 
@@ -20,7 +19,7 @@ MEBIUSAPI const HookData& mebius::_GetHookData(uint32_t address)
 {
 	decltype(_HOOK_LIST)::iterator it = _HOOK_LIST.find(address);
 	if (it == _HOOK_LIST.end()) {
-		throw std::runtime_error(std::vformat("Mebius has not hook on address 0x{08X}.", std::make_format_args(address)));
+		throw MebiusError(std::vformat("Mebius has not hook on address 0x{08X}.", std::make_format_args(address)));
 	}
 	else {
 		return it->second;
@@ -40,30 +39,28 @@ MEBIUSAPI const HookData* mebius::_GetHookDataNullable(uint32_t address) noexcep
 
 MEBIUSAPI void mebius::_SetHookOnHead(uint32_t hookTarget, const void* hookFunction, const void* internalHookFunction) noexcept
 {
-	auto [unhooked, hook] = AddHookData(hookTarget);
+	auto [unhooked, hook] = add_hook_data(hookTarget);
 	hook.AppendHeadHook(hookFunction);
 	if (unhooked) {
 		try {
 			write_call_opcode(hookTarget, internalHookFunction);
 		}
-		catch (const std::runtime_error& e) {
-			MessageBoxA(NULL, e.what(), NULL, MB_OK);
-			exit(1);
+		catch (const MebiusError& e) {
+			ShowErrorDialog(e.what());
 		}
 	}
 }
 
 MEBIUSAPI void mebius::_SetHookOnTail(uint32_t hookTarget, const void* hookFunction, const void* internalHookFunction) noexcept
 {
-	auto [unhooked, hook] = AddHookData(hookTarget);
+	auto [unhooked, hook] = add_hook_data(hookTarget);
 	hook.AppendTailHook(hookFunction);
 	if (unhooked) {
 		try {
 			write_call_opcode(hookTarget, internalHookFunction);
 		}
-		catch (const std::runtime_error& e) {
-			MessageBoxA(NULL, e.what(), NULL, MB_OK);
-			exit(1);
+		catch (const MebiusError& e) {
+			ShowErrorDialog(e.what());
 		}
 	}
 }
@@ -75,11 +72,11 @@ HookDataImpl::HookDataImpl(uint32_t address) noexcept {
 }
 
 HookDataImpl::~HookDataImpl() noexcept {
-	_trampoline_code->~byte();
+	_trampoline_code->~code_t();
 }
 
 
-static inline const byte* make_trampoline_code(uint32_t address) noexcept {
+static inline const code_t* make_trampoline_code(uint32_t address) noexcept {
 	static std::atomic_size_t offset = 0;
 	size_t length = 0;
 	do {
@@ -89,7 +86,7 @@ static inline const byte* make_trampoline_code(uint32_t address) noexcept {
 	size_t code_length = (length + 15) & ~15;
 	size_t my_offset = offset.fetch_add(code_length);
 
-	auto mem = new(_MEBIUS_RWX_MEM_POOL + my_offset)byte[length + 5];
+	auto mem = new(_MEBIUS_RWX_MEM_POOL + my_offset)code_t[length + 5];
 	std::memcpy(mem, std::bit_cast<void*>(address), length);
 	write_jmp_opcode(std::bit_cast<uint32_t>(mem) + length, std::bit_cast<void*>(address + length));
 	return mem;
@@ -103,7 +100,7 @@ static inline size_t calc_assembly_length(uint32_t address) noexcept {
 	return 0;
 }
 
-static inline std::pair<bool, HookDataImpl&> AddHookData(uint32_t address) noexcept
+static inline std::pair<bool, HookDataImpl&> add_hook_data(uint32_t address) noexcept
 {
 	decltype(_HOOK_LIST)::iterator it = _HOOK_LIST.find(address);
 	if (it == _HOOK_LIST.end()) {
@@ -117,10 +114,10 @@ static inline std::pair<bool, HookDataImpl&> AddHookData(uint32_t address) noexc
 }
 
 static inline void write_call_opcode(uint32_t address, const void* func) {
-	auto ptr = std::bit_cast<byte*>(address);
+	auto ptr = std::bit_cast<code_t*>(address);
 	DWORD oldProtect;
 	if (VirtualProtect(ptr, 5, PAGE_EXECUTE_READWRITE, &oldProtect) == 0) {
-		throw std::runtime_error(std::vformat("Can't change the page protect of 0x{08X}.", std::make_format_args(address)));
+		throw MebiusError(std::vformat("Can't change the page protect of 0x{08X}.", std::make_format_args(address)));
 	}
 	ptr[0] = _OPCODE_REL_CALL;
 	auto callee = std::bit_cast<uint32_t*>(address + 1);
@@ -129,7 +126,7 @@ static inline void write_call_opcode(uint32_t address, const void* func) {
 }
 
 static inline void write_jmp_opcode(uint32_t address, const void* func) noexcept {
-	auto ptr = std::bit_cast<byte*>(address);
+	auto ptr = std::bit_cast<code_t*>(address);
 	ptr[0] = _OPCODE_REL_JMP;
 	auto callee = std::bit_cast<uint32_t*>(address + 1);
 	callee[0] = std::bit_cast<uint32_t>(func) - (address + 5);

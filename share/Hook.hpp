@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Error.hpp"
 
 #include <atomic>
 #include <bit>
@@ -14,12 +15,14 @@ namespace mebius {
 #define MEBIUSAPI __declspec(dllimport)
 #endif
 
+	using code_t = uint8_t;
+
 	class HookData {
 	public:
 		virtual ~HookData() = default;
 		virtual const std::vector<const void*>& GetHeadHooks() const noexcept = 0;
 		virtual const std::vector<const void*>& GetTailHooks() const noexcept = 0;
-		virtual const uint8_t* GetTrampolineCode() const noexcept = 0;
+		virtual const code_t* GetTrampolineCode() const noexcept = 0;
 	};
 
 	MEBIUSAPI const HookData& _GetHookData(uint32_t address);
@@ -30,8 +33,6 @@ namespace mebius {
 	namespace internal {};
 	namespace {
 		namespace internal {
-			using byte = uint8_t;
-
 			using pvfv_t = void(*)(void);
 			template <typename T>
 			using ptfv_t = T(*)(void);
@@ -52,20 +53,25 @@ namespace mebius {
 
 
 			void hook_vfv(pvfv_t hookedFunction, int32_t returnAddress) {
-				uint32_t address = std::bit_cast<uint32_t>(hookedFunction);
-				auto& hook = _GetHookData(address);
+				try {
+					uint32_t address = std::bit_cast<uint32_t>(hookedFunction);
+					auto& hook = _GetHookData(address);
 
-				for (auto&& f : hook.GetHeadHooks()) {
-					auto head = std::bit_cast<pvfv_t>(f);
-					head();
+					for (auto&& f : hook.GetHeadHooks()) {
+						auto head = std::bit_cast<pvfv_t>(f);
+						head();
+					}
+
+					auto trampoline = std::bit_cast<pvfv_t>(hook.GetTrampolineCode());
+					trampoline();
+
+					for (auto&& f : hook.GetTailHooks()) {
+						auto tail = std::bit_cast<pvfv_t>(f);
+						tail();
+					}
 				}
-
-				auto trampoline = std::bit_cast<pvfv_t>(hook.GetTrampolineCode());
-				trampoline();
-
-				for (auto&& f : hook.GetTailHooks()) {
-					auto tail = std::bit_cast<pvfv_t>(f);
-					tail();
+				catch (const MebiusError& e) {
+					ShowErrorDialog(e.what());
 				}
 
 				__asm {
@@ -78,20 +84,26 @@ namespace mebius {
 
 			template <typename T>
 			void hook_tfv(ptfv_t<T> hookedFunction, int32_t returnAddress) {
-				int32_t address = std::bit_cast<int32_t>(hookedFunction);
-				auto& hook = _GetHookData(address);
+				T result;
+				try {
+					int32_t address = std::bit_cast<int32_t>(hookedFunction);
+					auto& hook = _GetHookData(address);
 
-				for (auto&& f : hook.GetHeadHooks()) {
-					auto head = std::bit_cast<pvfv_t>(f);
-					head();
+					for (auto&& f : hook.GetHeadHooks()) {
+						auto head = std::bit_cast<pvfv_t>(f);
+						head();
+					}
+
+					auto trampoline = std::bit_cast<ptfv_t<T>>(hook.GetTrampolineCode());
+					result = trampoline();
+
+					for (auto&& f : hook.GetTailHooks()) {
+						auto tail = std::bit_cast<ptft_t<T>>(f);
+						result = tail(result);
+					}
 				}
-
-				auto trampoline = std::bit_cast<ptfv_t<T>>(hook.GetTrampolineCode());
-				T result = trampoline();
-
-				for (auto&& f : hook.GetTailHooks()) {
-					auto tail = std::bit_cast<ptft_t<T>>(f);
-					result = tail(result);
+				catch (const MebiusError& e) {
+					ShowErrorDialog(e.what());
 				}
 
 				__asm {
@@ -106,20 +118,25 @@ namespace mebius {
 			template <typename... Args>
 			void hook_vfa(pvfa_t<Args...> hookedFunction, int32_t returnAddress, Args... args) {
 				id_t my_id = id++;
-				int32_t address = std::bit_cast<int32_t>(hookedFunction);
-				auto& hook = _GetHookData(address);
+				try {
+					int32_t address = std::bit_cast<int32_t>(hookedFunction);
+					auto& hook = _GetHookData(address);
 
-				for (auto&& f : hook.GetHeadHooks()) {
-					auto head = std::bit_cast<pvfa_t<Args...>>(f);
-					head(args...);
+					for (auto&& f : hook.GetHeadHooks()) {
+						auto head = std::bit_cast<pvfa_t<Args...>>(f);
+						head(args...);
+					}
+
+					auto trampoline = std::bit_cast<pvfa_t<Args...>>(hook.GetTrampolineCode());
+					trampoline(args...);
+
+					for (auto&& f : hook.GetTailHooks()) {
+						auto tail = std::bit_cast<pvfa_t<Args...>>(f);
+						tail(args...);
+					}
 				}
-
-				auto trampoline = std::bit_cast<pvfa_t<Args...>>(hook.GetTrampolineCode());
-				trampoline(args...);
-
-				for (auto&& f : hook.GetTailHooks()) {
-					auto tail = std::bit_cast<pvfa_t<Args...>>(f);
-					tail(args...);
+				catch (const MebiusError& e) {
+					ShowErrorDialog(e.what());
 				}
 
 				__asm {
@@ -133,20 +150,26 @@ namespace mebius {
 			template <typename T, typename... Args>
 			void hook_tfa(ptfa_t<T, Args...> hookedFunction, int32_t returnAddress, Args... args) {
 				id_t my_id = id++;
-				int32_t address = std::bit_cast<int32_t>(hookedFunction);
-				auto& hook = _GetHookData(address);
+				T result;
+				try {
+					int32_t address = std::bit_cast<int32_t>(hookedFunction);
+					auto& hook = _GetHookData(address);
 
-				for (auto&& f : hook.GetHeadHooks()) {
-					auto head = std::bit_cast<pvfa_t<Args...>>(f);
-					head(args...);
+					for (auto&& f : hook.GetHeadHooks()) {
+						auto head = std::bit_cast<pvfa_t<Args...>>(f);
+						head(args...);
+					}
+
+					auto trampoline = std::bit_cast<ptfa_t<T, Args...>>(hook.GetTrampolineCode());
+					T result = trampoline(args...);
+
+					for (auto&& f : hook.GetTailHooks()) {
+						auto tail = std::bit_cast<ptfta_t<T, Args...>>(f);
+						result = tail(result, args...);
+					}
 				}
-
-				auto trampoline = std::bit_cast<ptfa_t<T, Args...>>(hook.GetTrampolineCode());
-				T result = trampoline(args...);
-
-				for (auto&& f : hook.GetTailHooks()) {
-					auto tail = std::bit_cast<ptfta_t<T, Args...>>(f);
-					result = tail(result, args...);
+				catch (const MebiusError& e) {
+					ShowErrorDialog(e.what());
 				}
 
 				__asm {

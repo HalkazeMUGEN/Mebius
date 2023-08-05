@@ -32,7 +32,7 @@ static inline void hooking() noexcept {
 }
 
 static void hook_ErrorExit(void) {
-    MessageBoxA(NULL, "Hello, World!", NULL, MB_OK);
+    mebius::ShowErrorDialog("Hello, World!");
 }
 
 static int32_t hook_TeamLifeBack(int32_t original_result, int32_t teamIndex) {
