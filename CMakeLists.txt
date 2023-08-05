@@ -89,8 +89,6 @@ target_include_directories (
 	${PROJECT_NAME}
 	PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/include
-	${ASMTK_INCLUDE_DIRS}
-	${ASMJIT_INCLUDE_DIRS}
 )
 
 target_include_directories (
@@ -129,3 +127,5 @@ install (
 	FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
 	DESTINATION cmake
 )
+
+add_subdirectory(example/)
