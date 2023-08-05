@@ -6,38 +6,33 @@
 using namespace asmjit;
 using namespace asmtk;
 
-int createTrampoline(void* target) {
-    Environment env(Arch::kX86);
+void* createTrampoline(void* target) {
+    // 宣言
+    static JitRuntime rt;
+    static Environment env(Arch::kX86);
+    static unsigned int MIN_LENGTH = 10;
+
     CodeHolder code;
     code.init(env);
-
-    // Attach x86::Assembler to `code`.
-    x86::Assembler a(&code);
-    AsmParser p(&a);
-
-    Error err = p.parse(
-        "mov eax, ebx\n"
-        "ret\n");
-
-
-
+    x86::Assembler assembler(&code);
+    AsmParser parser(&assembler);
 
     ZyanU32 runtime_address = (DWORD)target;
     ZyanU8* data = (ZyanU8*)target;
     ZyanUSize offset = 0;
     ZydisDisassembledInstruction instruction;
-    unsigned int length = 10;
-    while (length > offset && ZYAN_SUCCESS(ZydisDisassembleIntel(
-        ZYDIS_MACHINE_MODE_LEGACY_32,
-        runtime_address,
-        data + offset,
-        0x7FFFFFFF,
-        &instruction
-    ))) {
+
+    while (MIN_LENGTH > offset && ZYAN_SUCCESS(ZydisDisassembleIntel(ZYDIS_MACHINE_MODE_LEGACY_32, runtime_address, data + offset, 0x7FFFFFFF, &instruction)))
+    {
+        parser.parse(instruction.text);
         offset += instruction.info.length;
         runtime_address += instruction.info.length;
     }
-    return offset;
+    assembler.jmp((DWORD)target + offset);
+
+    void* func = nullptr;
+    rt.add(&func, &code);
+    return func;
 }
 
 void createHook(void* target) {
@@ -46,13 +41,8 @@ void createHook(void* target) {
     if (it != gHookList.end()) return;
 
     HOOK h;
-    // トランポリン作成
-    int size = createTrampoline(target);
-    h.trampolineCode = new BYTE[size + 5];
-    memcpy(h.trampolineCode, target, size);
-    writeJumpOpcode(h.trampolineCode + size, (void*)((DWORD)target + size), OP_JMP);
-    DWORD old = 0;
-    VirtualProtect(h.trampolineCode, size + 5, PAGE_EXECUTE_READWRITE, &old);
+    h.trampolineFunc = createTrampoline(target);
+
     writeJumpOpcode(target, Head, OP_CALL);
     writeJumpOpcode((void*)((DWORD)target + 5), Tail_Escape, OP_CALL);
     // Hookを追加
@@ -97,7 +87,7 @@ void Head(void) {
     *(stack + 1) = (void*)((DWORD) * (stack));
 
     // Headのリターンアドレスをトランポリンに変更
-    *stack = h.trampolineCode;
+    *stack = h.trampolineFunc;
 
     // head_hookをすべて実行
     for (void *addr : h.cbHeadFuncAddr) {
