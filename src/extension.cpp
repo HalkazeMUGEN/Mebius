@@ -1,5 +1,7 @@
 #include <_Mebius.h>
 
+using namespace mebius;
+
 void LoadAllDLL(const fs::path& dirpath, const char* ex)
 {
     for (const auto& entry : fs::directory_iterator(dirpath)) {

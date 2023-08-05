@@ -1,20 +1,14 @@
-#include <_Mebius.h>
-#include <fstream>
+#include <_Log.hpp>
 
-bool isFirst = TRUE;
+using namespace mebius;
 
-void MebLogWrite(const std::string& content) {
-	std::ofstream logfile;
-	if (isFirst) {
-		isFirst = FALSE;
-		logfile.open("mebius.log");
-		logfile << "----------------------------------\n";
-		logfile << "Mebius Loader ver 0.0.5 status log\n";
-		logfile << "----------------------------------\n";
+void mebius::MebLogWrite(const std::string& content)
+{
+	try {
+		static LogWriter file{LOG_FILENAME};
+		file.write(content);
 	}
-	else {
-		logfile.open("mebius.log", std::ios_base::app);
+	catch (const MebiusError& e) {
+		ShowErrorDialog(e.what());
 	}
-	logfile << content << "\n";
-	logfile.close();
 }
