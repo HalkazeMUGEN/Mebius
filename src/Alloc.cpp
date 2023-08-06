@@ -25,8 +25,12 @@ mebius::alloc::SmallPool::Pool() {
 
 template <>
 mebius::alloc::SmallPool::~Pool() noexcept {
-	(this->nodes)->~SmallPoolNode();
-	VirtualFree(this->nodes, 0, MEM_RELEASE);
+	MessageBoxA(nullptr, "Small pool destructor start", nullptr, MB_OK);
+	if (this->nodes != nullptr) {
+		(this->nodes)->~SmallPoolNode();
+		VirtualFree(this->nodes, 0, MEM_RELEASE);
+	}
+	MessageBoxA(nullptr, "Small pool destructor end", nullptr, MB_OK);
 }
 
 
@@ -52,6 +56,13 @@ mebius::alloc::LargePool::~Pool() noexcept {
 }
 
 
+template<size_t _Size>
+inline mebius::alloc::internal::Pool<_Size>::Pool()
+{
+	ShowErrorDialog("Unspecialized pool constructor shouldn't be called.");
+}
+
+
 code_t* mebius::alloc::CodeAllocator::Allocate(size_t size) noexcept {
 	code_t* mem = nullptr;
 	if (size <= _MEM_SMALL_NODE_SIZE) {
@@ -69,17 +80,17 @@ code_t* mebius::alloc::CodeAllocator::Allocate(size_t size) noexcept {
 inline code_t* mebius::alloc::CodeAllocator::AllocateFromSmallPool() noexcept
 {
 	code_t* mem = nullptr;
-	for (auto&& p : _small_pools) {
+	for (auto& p : _small_pools) {
 		if (!p.IsFull()) {
-			mem = AllocFromSmallPool(std::move(p));
+			mem = AllocFromPool(p);
 			break;
 		}
 	}
 	// 全small pool枯渇時
 	if (mem == nullptr) {
 		try {
-			auto& p = AppendSmallPool(std::move(SmallPool{}));
-			mem = AllocFromSmallPool(std::move(p));
+			auto& p = AppendSmallPool();
+			mem = AllocFromPool(p);
 		}
 		catch (const MebiusError& e) {
 			ShowErrorDialog(e.what());
@@ -92,17 +103,17 @@ inline code_t* mebius::alloc::CodeAllocator::AllocateFromSmallPool() noexcept
 inline code_t* mebius::alloc::CodeAllocator::AllocateFromLargePool() noexcept
 {
 	code_t* mem = nullptr;
-	for (auto&& p : _large_pools) {
+	for (auto& p : _large_pools) {
 		if (!p.IsFull()) {
-			mem = AllocFromLargePool(std::move(p));
+			mem = AllocFromPool(p);
 			break;
 		}
 	}
 	// 全large pool枯渇時
 	if (mem == nullptr) {
 		try {
-			auto& p = AppendLargePool(std::move(LargePool{}));
-			mem = AllocFromLargePool(std::move(p));
+			auto& p = AppendLargePool();
+			mem = AllocFromPool(p);
 		}
 		catch (const MebiusError& e) {
 			ShowErrorDialog(e.what());
@@ -116,7 +127,7 @@ void mebius::alloc::CodeAllocator::DeAllocate(code_t* ptr) noexcept {
 	if (ptr != nullptr) {
 		auto it = used.find(ptr);
 		if (it != used.end()) {
-			it->second->Free(ptr);
+			it->second.Free(ptr);
 			used.erase(it);
 		}
 	}

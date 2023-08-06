@@ -22,6 +22,7 @@ namespace mebius {
 		namespace internal {
 			class PoolBase {
 			public:
+				virtual code_t* Alloc() noexcept = 0;
 				virtual void Free(code_t* node) noexcept = 0;
 				virtual ~PoolBase() = default;
 			};
@@ -45,16 +46,30 @@ namespace mebius {
 			public:
 				Pool();
 				~Pool() noexcept override;
-				explicit Pool(Pool&& pool) noexcept = default;
+
+				Pool(const Pool&) = delete;
+				Pool& operator=(const Pool&) = delete;
+
+				Pool(Pool&& pool) noexcept : nodes(pool.nodes), top(pool.top) {
+					pool.nodes = nullptr;
+					pool.top = nullptr;
+				}
+				Pool& operator=(Pool&& pool) noexcept {
+					this->nodes = std::move(pool.nodes);
+					this->top = std::move(pool.top);
+					pool.nodes = nullptr;
+					pool.top = nullptr;
+				}
+				
 
 				inline bool IsFull() const noexcept {
 					return top == nullptr;
 				}
 
-				inline std::array<code_t, _Size>& Alloc() noexcept {
+				inline code_t* Alloc() noexcept override {
 					auto& ret = top->code;
 					top = top->next;
-					return ret;
+					return ret.data();
 				}
 
 				inline void Free(code_t* ptr) noexcept override {
@@ -80,19 +95,23 @@ namespace mebius {
 				static CodeAllocator instance{};
 				return instance;
 			}
+			CodeAllocator(const CodeAllocator&) = delete;
+			CodeAllocator& operator=(const CodeAllocator&) = delete;
+			CodeAllocator(CodeAllocator&&) = delete;
+			CodeAllocator& operator=(CodeAllocator&&) = delete;
 
 			[[nodiscard]] code_t* Allocate(size_t size) noexcept;
 			void DeAllocate(code_t* ptr) noexcept;
 
 		private:
-			std::unordered_map<code_t*, std::unique_ptr<internal::PoolBase>> used{};
+			std::unordered_map<code_t*, internal::PoolBase&> used{};
 			std::deque<SmallPool> _small_pools{};
 			std::deque<LargePool> _large_pools{};
 
 			CodeAllocator() noexcept {
 				try {
-					_small_pools.emplace_back(std::move(SmallPool{}));
-					_large_pools.emplace_back(std::move(LargePool{}));
+					AppendSmallPool();
+					AppendLargePool();
 				}
 				catch (const MebiusError& e) {
 					ShowErrorDialog(e.what());
@@ -100,23 +119,18 @@ namespace mebius {
 			}
 			~CodeAllocator() noexcept = default;
 
-			inline SmallPool& AppendSmallPool(SmallPool&& pool) noexcept {
-				return _small_pools.emplace_front(std::move(pool));
+			inline SmallPool& AppendSmallPool() noexcept {
+				return _small_pools.emplace_front();
 			}
-			inline LargePool& AppendLargePool(LargePool&& pool) noexcept {
-				return _large_pools.emplace_front(std::move(pool));
+			inline LargePool& AppendLargePool() noexcept {
+				return _large_pools.emplace_front();
 			}
 
 			inline code_t* AllocateFromSmallPool() noexcept;
 			inline code_t* AllocateFromLargePool() noexcept;
 
-			inline code_t* AllocFromSmallPool(SmallPool&& pool) noexcept {
-				auto p = pool.Alloc().data();
-				return std::get<0>(used.emplace(std::move(p), std::make_unique<SmallPool>(std::move(pool))))->first;
-			}
-			inline code_t* AllocFromLargePool(LargePool&& pool) noexcept {
-				auto p = pool.Alloc().data();
-				return std::get<0>(used.emplace(std::move(p), std::make_unique<LargePool>(std::move(pool))))->first;
+			inline code_t* AllocFromPool(internal::PoolBase& pool) noexcept {
+				return std::get<0>(used.emplace(pool.Alloc(), pool))->first;
 			}
 		};
 	}

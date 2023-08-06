@@ -72,8 +72,10 @@ HookDataImpl::HookDataImpl(uint32_t address) noexcept {
 }
 
 HookDataImpl::~HookDataImpl() noexcept {
-	alloc::CodeAllocator::GetInstance().DeAllocate(_trampoline_code);
-	_trampoline_code = nullptr;
+	if (_trampoline_code != nullptr) {
+		alloc::CodeAllocator::GetInstance().DeAllocate(_trampoline_code);
+		_trampoline_code = nullptr;
+	}
 }
 
 
@@ -101,8 +103,7 @@ static inline std::pair<bool, HookDataImpl&> add_hook_data(uint32_t address) noe
 {
 	decltype(_HOOK_LIST)::iterator it = _HOOK_LIST.find(address);
 	if (it == _HOOK_LIST.end()) {
-		auto&& data = HookDataImpl{ address };
-		decltype(_HOOK_LIST)::iterator item = std::get<0>(_HOOK_LIST.emplace(address, std::move(data)));
+		decltype(_HOOK_LIST)::iterator item = std::get<0>(_HOOK_LIST.emplace(address, address));
 		return { true, item->second };
 	}
 	else {
