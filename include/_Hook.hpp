@@ -13,7 +13,19 @@ namespace mebius {
 	public:
 		explicit HookDataImpl(uint32_t address) noexcept;
 		~HookDataImpl() noexcept override;
-		HookDataImpl(HookDataImpl&& hookData) noexcept = default;
+
+		HookDataImpl(const HookDataImpl&) = delete;
+		HookDataImpl& operator=(const HookDataImpl&) = delete;
+
+		HookDataImpl(HookDataImpl&& hookData) noexcept : _head_hooks(hookData._head_hooks), _tail_hooks(hookData._tail_hooks), _trampoline_code(hookData._trampoline_code) {
+			hookData._trampoline_code = nullptr;
+		}
+		HookDataImpl& operator=(HookDataImpl&& hookData) noexcept {
+			this->_head_hooks = std::move(hookData._head_hooks);
+			this->_tail_hooks = std::move(hookData._tail_hooks);
+			this->_trampoline_code = std::move(hookData._trampoline_code);
+			hookData._trampoline_code = nullptr;
+		}
 
 		inline const std::vector<const void*>& GetHeadHooks() const noexcept override {
 			return _head_hooks;
