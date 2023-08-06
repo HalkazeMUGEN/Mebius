@@ -72,7 +72,7 @@ code_t* mebius::alloc::CodeAllocator::Allocate(size_t size) noexcept {
 		mem = AllocateFromLargePool();
 	}
 	else {
-		ShowErrorDialog(std::vformat("The size allocator required ({d}) is bigger than {d}.", std::make_format_args(size, _MEM_LARGE_NODE_SIZE)).c_str());
+		ShowErrorDialog(std::vformat("The size allocator required ({:d}) is bigger than {:d}.", std::make_format_args(size, _MEM_LARGE_NODE_SIZE)).c_str());
 	}
 	return mem;
 }

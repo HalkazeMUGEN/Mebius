@@ -20,7 +20,7 @@ MEBIUSAPI const HookData& mebius::_GetHookData(uint32_t address)
 {
 	decltype(_HOOK_LIST)::iterator it = _HOOK_LIST.find(address);
 	if (it == _HOOK_LIST.end()) {
-		throw MebiusError(std::vformat("Mebius has not hook on address 0x{08X}.", std::make_format_args(address)));
+		throw MebiusError(std::vformat("Mebius has not hook on address 0x{:08X}.", std::make_format_args(address)));
 	}
 	else {
 		return it->second;
@@ -115,7 +115,7 @@ static inline void write_call_opcode(uint32_t address, const void* func) {
 	auto ptr = std::bit_cast<code_t*>(address);
 	DWORD oldProtect;
 	if (VirtualProtect(ptr, 5, PAGE_EXECUTE_READWRITE, &oldProtect) == 0) {
-		throw MebiusError(std::vformat("Can't change the page protect of 0x{08X}.", std::make_format_args(address)));
+		throw MebiusError(std::vformat("Can't change the page protect of 0x{:08X}.", std::make_format_args(address)));
 	}
 	ptr[0] = _OPCODE_REL_CALL;
 	auto callee = std::bit_cast<uint32_t*>(address + 1);
