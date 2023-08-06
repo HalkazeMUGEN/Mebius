@@ -2,7 +2,6 @@
 
 #include "Error.hpp"
 
-#include <atomic>
 #include <bit>
 #include <optional>
 #include <vector>
@@ -44,12 +43,6 @@ namespace mebius {
 			using ptft_t = T(*)(T);
 			template <typename T, typename... Args>
 			using ptfta_t = T(*)(T, Args...);
-
-			using id_t = uint_fast32_t;
-			using atomic_id_t = std::atomic_uint_fast32_t;
-
-
-			static inline atomic_id_t id{0};
 
 
 			void hook_vfv(pvfv_t hookedFunction, int32_t returnAddress) {
@@ -117,7 +110,6 @@ namespace mebius {
 
 			template <typename... Args>
 			void hook_vfa(pvfa_t<Args...> hookedFunction, int32_t returnAddress, Args... args) {
-				id_t my_id = id++;
 				try {
 					int32_t address = std::bit_cast<int32_t>(hookedFunction);
 					auto& hook = _GetHookData(address);
@@ -149,7 +141,6 @@ namespace mebius {
 
 			template <typename T, typename... Args>
 			void hook_tfa(ptfa_t<T, Args...> hookedFunction, int32_t returnAddress, Args... args) {
-				id_t my_id = id++;
 				T result;
 				try {
 					int32_t address = std::bit_cast<int32_t>(hookedFunction);
