@@ -6,12 +6,8 @@
 namespace mebius {
 	using code_t = uint8_t;
 
-	constexpr static inline size_t _MEM_CODE_SIZE = 0x1000;
 	constexpr static inline code_t _OPCODE_REL_CALL = 0xE8;
 	constexpr static inline code_t _OPCODE_REL_JMP = 0xE9;
-
-#pragma section(".mebius", read, write, execute)
-	__declspec(allocate(".mebius")) static inline code_t _MEBIUS_RWX_MEM_POOL[_MEM_CODE_SIZE];
 	
 	class HookDataImpl : public HookData{
 	public:
@@ -38,7 +34,7 @@ namespace mebius {
 	private:
 		std::vector<const void*> _head_hooks;
 		std::vector<const void*> _tail_hooks;
-		const code_t* _trampoline_code;
+		code_t* _trampoline_code;
 	};
 
 	static inline std::unordered_map<uint32_t, HookDataImpl> _HOOK_LIST{};

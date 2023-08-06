@@ -1,4 +1,5 @@
 #include "_Hook.hpp"
+#include "_Alloc.hpp"
 #include "Error.hpp"
 
 #include <Windows.h>
@@ -8,7 +9,7 @@
 
 using namespace mebius;
 
-static inline const code_t* make_trampoline_code(uint32_t address) noexcept;
+static inline code_t* make_trampoline_code(uint32_t address) noexcept;
 static inline size_t calc_assembly_length(uint32_t address) noexcept;
 static inline std::pair<bool, HookDataImpl&> add_hook_data(uint32_t address) noexcept;
 static inline void write_call_opcode(uint32_t address, const void* func);
@@ -67,26 +68,22 @@ MEBIUSAPI void mebius::_SetHookOnTail(uint32_t hookTarget, const void* hookFunct
 
 
 HookDataImpl::HookDataImpl(uint32_t address) noexcept {
-	auto&& code = make_trampoline_code(address);
-	_trampoline_code = code;
+	_trampoline_code = make_trampoline_code(address);
 }
 
 HookDataImpl::~HookDataImpl() noexcept {
-	_trampoline_code->~code_t();
+	alloc::CodeAllocator::GetInstance().DeAllocate(_trampoline_code);
+	_trampoline_code = nullptr;
 }
 
 
-static inline const code_t* make_trampoline_code(uint32_t address) noexcept {
-	static std::atomic_size_t offset = 0;
+static inline code_t* make_trampoline_code(uint32_t address) noexcept {
 	size_t length = 0;
 	do {
 		length += calc_assembly_length(address + length);
 	} while (length < 5);
 
-	size_t code_length = (length + 15) & ~15;
-	size_t my_offset = offset.fetch_add(code_length);
-
-	auto mem = new(_MEBIUS_RWX_MEM_POOL + my_offset)code_t[length + 5];
+	auto mem = alloc::CodeAllocator::GetInstance().Allocate(length + 5);
 	std::memcpy(mem, std::bit_cast<void*>(address), length);
 	write_jmp_opcode(std::bit_cast<uint32_t>(mem) + length, std::bit_cast<void*>(address + length));
 	return mem;
