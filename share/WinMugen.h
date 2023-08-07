@@ -34,9 +34,10 @@ typedef uint32_t undefined4;
 typedef uint64_t undefined8;
 
 typedef union value32_t_ {
-  int32_t i;
+  int32_t i = 0;
   uint32_t u;
   float f;
+  bool b;
 } value32_t;
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -183,7 +184,7 @@ typedef enum MUGEN_TRANS_TYPE_ {
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-typedef enum MUGEN_EVAL_TYPE_ {
+typedef enum MUGEN_EVAL_TYPE_ : uint8_t {
   EVAL_TYPE_INT = 0,
   EVAL_TYPE_FLOAT = 1,
   EVAL_TYPE_OPERATOR = 2,
@@ -487,7 +488,8 @@ typedef enum MUGEN_REDIRECT_ID_ {
   ID_RD_Partner = 5,
   ID_RD_Enemy = 6,
   ID_RD_EnemyNear = 7,
-  ID_RD_PlayerID = 8
+  ID_RD_PlayerID = 8,
+  ID_RD_Extension = 0x7FFFFFFF
 } MUGEN_REDIRECT_ID;
 typedef enum MUGEN_GET_HIT_VAR_ID_ {
   ID_GHV_XVelAdd = 0,
@@ -1380,8 +1382,8 @@ union MUGEN_EVAL_NODE_ {
   MUGEN_EVAL_TYPE t;
 };
 struct MUGEN_EVAL_VALUE_ {
-  MUGEN_EVAL_EXPR_VALUE* exprs;
-  MUGEN_EVAL_TYPE* types; /* 0: immediate value */
+  MUGEN_EVAL_EXPR_VALUE* exprs = nullptr;
+  MUGEN_EVAL_TYPE* types = nullptr; /* 0: immediate value */
   MUGEN_EVAL_NODE value;  /* types == NULL => immediate value, otherwise length of types, exprs */
 };
 struct MUGEN_EVAL_TRIGGER_ {
@@ -4340,19 +4342,39 @@ typedef enum MUGEN_ASSERT_SPECIAL_TYPE_ {
     TYPE_AS_PLAYER
 } MUGEN_ASSERT_SPECIAL_TYPE;
 
-struct MUGEN_SC_DATA_EX_ {
+struct MEBIUS_SCX_DATA {
+    int exscID;
+    void* common;
+    void* params;
+};
+
+struct MUGEN_SC_DATA_EX {
     MUGEN_TRIGGER_INFO* triggers;
     uint32_t triggerCnt;
     int32_t persistent;
     int32_t ignorehitpause;
-    int scID;
-    int exscID;
-    void *params;
-    undefined4 unused_1;
-    undefined4 unused_2;
-    MUGEN_EVAL_VALUE unused_params[5];
-    MUGEN_SC_PARAMS_EX unused_paramsEx;
-} typedef MUGEN_SC_DATA_EX;
+    MUGEN_SC_ID scID;
+    MEBIUS_SCX_DATA* SCX;
+    MUGEN_EVAL_VALUE params[6];
+    MUGEN_SC_PARAMS_EX paramsEx;
+};
+
+struct MEBIUS_TRX_DATA {
+    int extrID;
+    void* params;
+};
+
+struct MUGEN_EVAL_TRIGGER_EX {
+    MUGEN_TRIG_ID trigID;
+    MUGEN_REDIRECT_ID redirectID;
+    MUGEN_EVAL_VALUE redirectArg;
+    MUGEN_EVAL_COMPARATOR compareStyle;
+    uint32_t isFloat;
+    MEBIUS_TRX_DATA* TRX;
+    value32_t trigArgs[5];
+    char* trigStrArg;
+};
+
 
 static auto TPAccessFirstLine = reinterpret_cast<const char* (*)(TPFILE * tpf)>(0x483f10);
 static auto TPAccessNextLine = reinterpret_cast<const char* (*)(TPFILE * tpf)>(0x483f90);
@@ -4370,9 +4392,10 @@ static auto ParsePosType = reinterpret_cast<int (*)(const char* postypeStr)>(0x4
 static auto EvalExpression = reinterpret_cast<MUGEN_EVAL_TYPE(*)(MUGEN_PLAYER * player, MUGEN_EVAL_VALUE * eval, int32_t * pInt, float* pFloat)>(0x407780);
 static auto FreeExpression = reinterpret_cast<void (*)(MUGEN_EVAL_VALUE * eval)>(0x406e00);
 
-static auto SCtrlParseTrigger = reinterpret_cast<int (*)(const char* s, MUGEN_PLAYER_INFO * playerInfo, MUGEN_EVAL_TRIGGER * triggers, MUGEN_EVAL_TYPE * types, int maxLength, const char** endptr)>(0x477920);
+static auto SCtrlParseTrigger = reinterpret_cast<int (*)(const char* s, MUGEN_PLAYER_INFO * playerInfo, MUGEN_EVAL_TRIGGER * *triggers, MUGEN_EVAL_TYPE* types, int maxLength, const char** endptr)>(0x477920);
 static auto SCtrlParseElemType = reinterpret_cast<bool (*)(TPFILE * tpf, MUGEN_SC_DATA_EX * sinfo, MUGEN_PLAYER_INFO * playerInfo)>(0x46aa60);
 static auto SCtrlRCElemFree = reinterpret_cast<void (*)(MUGEN_SC_DATA_EX * sinfo)>(0x4718d0);
+static auto TriggerFree = reinterpret_cast<void (*)(MUGEN_EVAL_TRIGGER * triggers)>(0x47D4C0);
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 #define _NALLEG40
