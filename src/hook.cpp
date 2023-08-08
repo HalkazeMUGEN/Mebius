@@ -6,6 +6,8 @@
 #include <Zydis/Zydis.h>
 #include <format>
 
+#include "_Reassemble.h"
+
 
 using namespace mebius;
 
@@ -78,25 +80,18 @@ HookDataImpl::~HookDataImpl() noexcept {
 	}
 }
 
-
 static inline code_t* make_trampoline_code(uint32_t address) noexcept {
-	size_t length = 0;
-	do {
-		length += calc_assembly_length(address + length);
-	} while (length < 5);
-
-	auto mem = alloc::CodeAllocator::GetInstance().Allocate(length + 5);
-	std::memcpy(mem, std::bit_cast<void*>(address), length);
-	write_jmp_opcode(std::bit_cast<uint32_t>(mem) + length, std::bit_cast<void*>(address + length));
-	return mem;
-}
-
-static inline size_t calc_assembly_length(uint32_t address) noexcept {
-	ZydisDisassembledInstruction inst;
-	if (ZYAN_SUCCESS(ZydisDisassembleIntel(ZYDIS_MACHINE_MODE_LONG_COMPAT_32, 0, std::bit_cast<void*>(address), 0x7fffffff, &inst))) {
-		return inst.info.length;
+	try {
+		reassemble::Reassembler code{address, 5};
+		size_t memSize = code.GetSize() + 5;
+		auto mem = alloc::CodeAllocator::GetInstance().Allocate(memSize);
+		code.Reassemble(mem, memSize);
+		write_jmp_opcode(std::bit_cast<uint32_t>(mem) + code.GetSize(), std::bit_cast<void*>(address + code.GetOriginalSize()));
+		return mem;
 	}
-	return 0;
+	catch (const MebiusError& e) {
+		ShowErrorDialog(e.what());
+	}
 }
 
 static inline std::pair<bool, HookDataImpl&> add_hook_data(uint32_t address) noexcept
