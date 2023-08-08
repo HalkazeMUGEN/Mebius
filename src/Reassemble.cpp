@@ -33,7 +33,7 @@ mebius::reassemble::Reassembler::Reassembler(uint32_t address, size_t min_size) 
 				|| req.mnemonic == ZYDIS_MNEMONIC_LOOPNE
 				|| req.mnemonic == ZYDIS_MNEMONIC_JCXZ
 				|| req.mnemonic == ZYDIS_MNEMONIC_JECXZ) {
-				ConvertRel9OnlyOpcode(req, eip);
+				ConvertRel8OnlyOpcode(req, eip);
 			}
 			else {
 				ConvertJccRel8(req, eip);
@@ -90,7 +90,7 @@ void mebius::reassemble::Reassembler::ConvertJccRel8(ZydisEncoderRequest& req, u
 	req.operands[0].imm.u += eip;
 }
 
-void mebius::reassemble::Reassembler::ConvertRel9OnlyOpcode(ZydisEncoderRequest& req, uint32_t eip) noexcept {
+void mebius::reassemble::Reassembler::ConvertRel8OnlyOpcode(ZydisEncoderRequest& req, uint32_t eip) noexcept {
 	// LOOP rel8 / LOOPE rel8 / LOOPNE rel8 / JCXZ rel8 / JECXZ rel8
 	// ->
 	// LOOP 0x5 / LOOPE 0x5 / LOOPNE 0x5 / JCXZ 0x5 / JECXZ 0x5

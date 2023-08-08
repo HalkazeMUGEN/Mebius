@@ -31,7 +31,7 @@ namespace mebius {
 
 			void ConvertJmpRel8(ZydisEncoderRequest& req, uint32_t eip) noexcept;
 			void ConvertJccRel8(ZydisEncoderRequest& req, uint32_t eip) noexcept;
-			void ConvertRel9OnlyOpcode(ZydisEncoderRequest& req, uint32_t eip) noexcept;
+			void ConvertRel8OnlyOpcode(ZydisEncoderRequest& req, uint32_t eip) noexcept;
 		};
 	}
 }
