@@ -1,4 +1,5 @@
 #pragma once
+
 #include <windows.h>
 #include <filesystem>
 
@@ -23,6 +24,7 @@ CLASS_DECLSPECEC void FreeAllDLL(const fs::path& dirpath, const char* ex);
 CLASS_DECLSPECEC void writeBytesToROM(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPECEC void readBytesFromMem(void* target, BYTE* bytes, size_t size);
 CLASS_DECLSPECEC void writeJumpOpcode(void* target, void* addr, SETEIP_TYPE type);
-CLASS_DECLSPECEC void MebLogWrite(const std::string& content);
-CLASS_DECLSPEC void Hook(void* target, void (*head)(void**));
-CLASS_DECLSPEC void Hook(void* target, int (*tail)(void**, int));
+
+#include "Log.hpp"
+#include "Error.hpp"
+#include "Hook.hpp"

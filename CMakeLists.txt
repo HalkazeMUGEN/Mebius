@@ -2,6 +2,10 @@
 
 project (Mebius VERSION 0.1.0 LANGUAGES CXX)
 
+option(ZYDIS_BUILD_TOOLS "" OFF)
+option(ZYDIS_BUILD_EXAMPLES "" OFF)
+add_subdirectory("deps/zydis" EXCLUDE_FROM_ALL)
+
 file (GLOB src src/*.cpp src/*.c)
 file (GLOB include include/*.hpp include/*.h)
 
@@ -12,19 +16,9 @@ add_library (
 )
 add_library (${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-option(ZYDIS_BUILD_TOOLS "" OFF)
-option(ZYDIS_BUILD_EXAMPLES "" OFF)
-add_subdirectory("deps/zydis")
 target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)
 
-set(ASMTK_STATIC ON)
-set(ASMJIT_STATIC ON)
-set(ASMTK_BUILD_TEST OFF)
-include("deps/asmtk/CMakeLists.txt")
-target_link_libraries(${PROJECT_NAME} PRIVATE asmjit)
-target_link_libraries(${PROJECT_NAME} PRIVATE asmtk)
-
-target_compile_features (${PROJECT_NAME} PRIVATE cxx_std_20)
+target_compile_features (${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_definitions (
 	${PROJECT_NAME}
 	PRIVATE
@@ -95,8 +89,6 @@ target_include_directories (
 	${PROJECT_NAME}
 	PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/include
-	${ASMTK_INCLUDE_DIRS}
-	${ASMJIT_INCLUDE_DIRS}
 )
 
 target_include_directories (
@@ -135,3 +127,5 @@ install (
 	FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
 	DESTINATION cmake
 )
+
+add_subdirectory(example/)
