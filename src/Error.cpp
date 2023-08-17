@@ -14,7 +14,7 @@ using namespace mebius;
 * [[noreturn]]属性がC互換のない構文であること、及び、extern "C"が付いていることが原因？
 */
 void mebius::ShowErrorDialog(const char* message) {
-	MebLogWrite(std::vformat("ERROR: {}", std::make_format_args(message)));
+	LogWrite(std::vformat("ERROR: {}", std::make_format_args(message)));
 	MessageBoxA(NULL, message, "Error by Mebius", MB_OK | MB_ICONERROR);
 	exit(1);
 }

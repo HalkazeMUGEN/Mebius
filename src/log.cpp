@@ -2,7 +2,7 @@
 
 using namespace mebius;
 
-void mebius::MebLogWrite(const std::string& content)
+void mebius::LogWrite(const std::string& content)
 {
 	try {
 		static LogWriter file{LOG_FILENAME};
