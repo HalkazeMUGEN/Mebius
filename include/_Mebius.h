@@ -6,7 +6,7 @@
 
 struct HOOK
 {
-    void *trampolineFunc = nullptr;
+    BYTE *trampolineCode = nullptr;
     deque<void*> returnAddr;
     vector<void*> cbHeadFuncAddr;
     vector<void*> cbTailFuncAddr;
@@ -15,7 +15,7 @@ struct HOOK
 extern unordered_map<void*, HOOK> gHookList;
 
 void createHook(void* target);
-void* createTrampoline(void* target);
+int createTrampoline(void* target);
 void Head(void);
 int __stdcall Tail(int RETVALUE);
 void Tail_Escape(void);

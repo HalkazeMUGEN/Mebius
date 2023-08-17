@@ -68,18 +68,18 @@ MEBIUSAPI void mebius::_SetHookOnTail(uint32_t hookTarget, const void* hookFunct
 	}
 }
 
-    VirtualProtect(h.trampolineCode, size + 5, PAGE_EXECUTE_READWRITE, &old);
-    writeJumpOpcode(target, Head, OP_CALL);
-    writeJumpOpcode((void*)((DWORD)target + 5), Tail_Escape, OP_CALL);
-    // HookÇí«â¡
-    gHookList.emplace(target, h);
-    VirtualProtect(h.trampolineCode, size + 5, PAGE_EXECUTE_READWRITE, &old);
-    writeJumpOpcode(target, Head, OP_CALL);
-    writeJumpOpcode((void*)((DWORD)target + 5), Tail_Escape, OP_CALL);
-    // HookÇí«â¡
-    gHookList.emplace(target, h);
 
 HookDataImpl::HookDataImpl(uint32_t address) noexcept {
+	_trampoline_code = make_trampoline_code(address);
+}
+
+HookDataImpl::~HookDataImpl() noexcept {
+	if (_trampoline_code != nullptr) {
+		alloc::CodeAllocator::GetInstance().DeAllocate(_trampoline_code);
+		_trampoline_code = nullptr;
+	}
+}
+
 static inline code_t* make_trampoline_code(uint32_t address) noexcept {
 	try {
 		reassemble::Reassembler code{address, 5};
@@ -88,16 +88,6 @@ static inline code_t* make_trampoline_code(uint32_t address) noexcept {
 		code.Reassemble(mem, memSize);
 		write_jmp_opcode(std::bit_cast<uint32_t>(mem) + code.GetSize(), std::bit_cast<void*>(address + code.GetOriginalSize()));
 		return mem;
-	}
-	catch (const MebiusError& e) {
-		ShowErrorDialog(e.what());
-	}
-}
-    // head_hookÇÇ∑Ç◊Çƒé¿çs
-    for (void *addr : h.cbHeadFuncAddr) {
-        auto hook_head = reinterpret_cast<void (*)(void**)>(addr);
-        hook_head(stack + 2);
-    }
 	}
 	catch (const MebiusError& e) {
 		ShowErrorDialog(e.what());
