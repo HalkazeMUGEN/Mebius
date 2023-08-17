@@ -4,7 +4,7 @@ project (Mebius VERSION 0.1.0 LANGUAGES CXX)
 
 option(ZYDIS_BUILD_TOOLS "" OFF)
 option(ZYDIS_BUILD_EXAMPLES "" OFF)
-add_subdirectory("deps/zydis")
+add_subdirectory("deps/zydis" EXCLUDE_FROM_ALL)
 
 file (GLOB src src/*.cpp src/*.c)
 file (GLOB include include/*.hpp include/*.h)
