@@ -65,12 +65,14 @@ target_compile_options (
 		/GR-
 		/Gy
 		/guard:cf-
-		/MD
+		/MT
 		/O2
 		/Oi
 		/Os
 	>
 )
+set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/NODEFAULTLIB:MSVCRT")
+
 target_link_options (
 	${PROJECT_NAME}
 	PRIVATE

@@ -1,4 +1,4 @@
-#include "_Reassemble.h"
+#include "_Reassemble.hpp"
 #include "Error.hpp"
 
 #include <bit>
@@ -26,7 +26,8 @@ mebius::reassemble::Reassembler::Reassembler(uint32_t address, size_t min_size) 
 		switch (req.branch_type) {
 		case ZYDIS_BRANCH_TYPE_SHORT:
 			if (req.mnemonic == ZYDIS_MNEMONIC_JMP) {
-				ConvertJmpRel8(req, eip);
+				
+				(req, eip);
 			}
 			else if (req.mnemonic == ZYDIS_MNEMONIC_LOOP
 				|| req.mnemonic == ZYDIS_MNEMONIC_LOOPE

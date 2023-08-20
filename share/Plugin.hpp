@@ -9,5 +9,5 @@
 #endif
 
 namespace mebius {
-	extern "C" MEBIUSAPI void WriteLog(const std::string & content);
+	extern "C" MEBIUSAPI void LoadPlugins(const std::string & ext);
 }

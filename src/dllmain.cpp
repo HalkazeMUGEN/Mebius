@@ -1,11 +1,14 @@
-#include <_Mebius.h>
+#include <Mebius.h>
+#include <_Plugin.hpp>
+
+using namespace mebius;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH: {
-        LoadAllDLL("mods", ".mx");
+        LoadPlugins(".mx");
         break;
     }
     case DLL_THREAD_ATTACH: {
@@ -15,7 +18,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
         break;
     }
     case DLL_PROCESS_DETACH: {
-        FreeAllDLL("mods", ".mx");
+        FreePlugins();
         break;
     }
     }
