@@ -45,7 +45,6 @@ target_compile_options (
 	/Qpar
 	/utf-8
 	$<$<CONFIG:Debug>:
-		/GR
 		/JMC
 		/MDd
 		/Ob0
@@ -56,13 +55,19 @@ target_compile_options (
 	$<$<CONFIG:Release>:
 		/GA
 		/GL
-		/GR-
 		/Gy
 		/guard:cf-
 		/MT
 		/Os
 	>
 )
+
+IF (CMAKE_CXX_FLAGS MATCHES "/GR")
+	STRING (REPLACE "/GR" "/GR-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+ELSE (CMAKE_CXX_FLAGS MATCHES "/GR")
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
+ENDIF (CMAKE_CXX_FLAGS MATCHES "/GR")
+
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/NODEFAULTLIB:MSVCRT")
 
 target_link_options (
