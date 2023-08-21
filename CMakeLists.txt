@@ -18,6 +18,9 @@ add_library (${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)
 
+set_property (TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_property (TARGET Zydis PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 target_compile_features (${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_definitions (
 	${PROJECT_NAME}
@@ -46,7 +49,7 @@ target_compile_options (
 	/utf-8
 	$<$<CONFIG:Debug>:
 		/JMC
-		/MDd
+		/LDd
 		/Ob0
 		/Od
 		/RTC1
@@ -57,7 +60,7 @@ target_compile_options (
 		/GL
 		/Gy
 		/guard:cf-
-		/MT
+		/LD
 		/Os
 	>
 )
@@ -67,8 +70,6 @@ IF (CMAKE_CXX_FLAGS MATCHES "/GR")
 ELSE (CMAKE_CXX_FLAGS MATCHES "/GR")
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
 ENDIF (CMAKE_CXX_FLAGS MATCHES "/GR")
-
-set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/NODEFAULTLIB:MSVCRT")
 
 target_link_options (
 	${PROJECT_NAME}
