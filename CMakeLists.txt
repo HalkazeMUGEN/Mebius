@@ -23,16 +23,11 @@ target_compile_definitions (
 	${PROJECT_NAME}
 	PRIVATE
 	MEBIUS_EXPORT
-	WIN32
-	_WINDOWS
 	UNICODE
 	_UNICODE
 	$<$<CONFIG:Debug>: 
 		_DEBUG
 		DEBUG
-	>
-	$<$<CONFIG:Release>:
-		NDEBUG
 	>
 )
 
@@ -41,7 +36,6 @@ target_compile_options (
 	PRIVATE
 	/W4
 	/arch:AVX
-	/EHsc
 	/fp:fast
 	/GS
 	/GT
@@ -66,8 +60,6 @@ target_compile_options (
 		/Gy
 		/guard:cf-
 		/MT
-		/O2
-		/Oi
 		/Os
 	>
 )
