@@ -18,21 +18,22 @@ add_library (${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)
 
+set_property (TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_property (TARGET Zydis PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+set_property (TARGET ${PROJECT_NAME} PROPERTY MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug>:EditAndContinue>")
+set_property (TARGET Zydis PROPERTY MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug>:EditAndContinue>")
+
 target_compile_features (${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_definitions (
 	${PROJECT_NAME}
 	PRIVATE
 	MEBIUS_EXPORT
-	WIN32
-	_WINDOWS
 	UNICODE
 	_UNICODE
 	$<$<CONFIG:Debug>: 
 		_DEBUG
 		DEBUG
-	>
-	$<$<CONFIG:Release>:
-		NDEBUG
 	>
 )
 
@@ -41,7 +42,6 @@ target_compile_options (
 	PRIVATE
 	/W4
 	/arch:AVX
-	/EHsc
 	/fp:fast
 	/GS
 	/GT
@@ -51,27 +51,27 @@ target_compile_options (
 	/Qpar
 	/utf-8
 	$<$<CONFIG:Debug>:
-		/GR
 		/JMC
-		/MDd
+		/LDd
 		/Ob0
 		/Od
 		/RTC1
-		/ZI
 	>
 	$<$<CONFIG:Release>:
 		/GA
 		/GL
-		/GR-
 		/Gy
 		/guard:cf-
-		/MT
-		/O2
-		/Oi
+		/LD
 		/Os
 	>
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/NODEFAULTLIB:MSVCRT")
+
+IF (CMAKE_CXX_FLAGS MATCHES "/GR")
+	STRING (REPLACE "/GR" "/GR-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+ELSE (CMAKE_CXX_FLAGS MATCHES "/GR")
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
+ENDIF (CMAKE_CXX_FLAGS MATCHES "/GR")
 
 target_link_options (
 	${PROJECT_NAME}
@@ -79,11 +79,24 @@ target_link_options (
 	/LTCG
 	/nologo
 	$<$<CONFIG:Debug>:
+		/nodefaultlib:libucrtd.lib
 		/debug
 		/opt:noref
 	>
 	$<$<CONFIG:Release>:
+		/nodefaultlib:libucrt.lib
 		/opt:ref
+	>
+)
+
+target_link_libraries (
+	${PROJECT_NAME}
+	PRIVATE
+	$<$<CONFIG:Debug>:
+		ucrtd.lib
+	>
+	$<$<CONFIG:Release>:
+		ucrt.lib
 	>
 )
 
