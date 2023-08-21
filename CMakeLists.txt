@@ -21,6 +21,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)
 set_property (TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set_property (TARGET Zydis PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+set_property (TARGET ${PROJECT_NAME} PROPERTY MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug>:EditAndContinue>")
+set_property (TARGET Zydis PROPERTY MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug>:EditAndContinue>")
+
 target_compile_features (${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_definitions (
 	${PROJECT_NAME}
@@ -53,7 +56,6 @@ target_compile_options (
 		/Ob0
 		/Od
 		/RTC1
-		/ZI
 	>
 	$<$<CONFIG:Release>:
 		/GA
