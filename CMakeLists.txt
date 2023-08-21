@@ -77,11 +77,24 @@ target_link_options (
 	/LTCG
 	/nologo
 	$<$<CONFIG:Debug>:
+		/nodefaultlib:libucrtd.lib
 		/debug
 		/opt:noref
 	>
 	$<$<CONFIG:Release>:
+		/nodefaultlib:libucrt.lib
 		/opt:ref
+	>
+)
+
+target_link_libraries (
+	${PROJECT_NAME}
+	PRIVATE
+	$<$<CONFIG:Debug>:
+		ucrtd.lib
+	>
+	$<$<CONFIG:Release>:
+		ucrt.lib
 	>
 )
 
