@@ -12,6 +12,28 @@ namespace mebius {
 
 	constexpr static inline char MODS_DIRNAME[] = "mods";
 
+	namespace internal {
+		class HModuleWrapper {
+		public:
+			HModuleWrapper(HMODULE&& handle) noexcept : _handle(handle) {}
+			HModuleWrapper(const HModuleWrapper&) = delete;
+			HModuleWrapper& operator=(const HModuleWrapper&) = delete;
+			HModuleWrapper(HModuleWrapper&&) = delete;
+			HModuleWrapper& operator=(HModuleWrapper&&) = delete;
+
+			~HModuleWrapper() noexcept {
+				FreeLibrary(_handle);
+			}
+
+			operator HMODULE() const {
+				return _handle;
+			}
+
+		private:
+			HMODULE _handle;
+		};
+	}
+
 	class PluginsLoader {
 	public:
 		static PluginsLoader& GetInstance() noexcept {
@@ -35,14 +57,10 @@ namespace mebius {
 
 	private:
 		const fs::path& _modsdir;
-		std::unordered_set<HMODULE> _plugins;
+		std::unordered_set<internal::HModuleWrapper> _plugins;
 
 		PluginsLoader() noexcept : _modsdir(std::move((fs::current_path() /= MODS_DIRNAME))), _plugins() {}
-		~PluginsLoader() noexcept {
-			for (auto&& plugin : _plugins) {
-				FreeLibrary(std::move(plugin));
-			}
-		}
+		~PluginsLoader() noexcept = default;
 	};
 }
 
