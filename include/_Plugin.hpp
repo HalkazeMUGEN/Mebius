@@ -25,7 +25,7 @@ namespace mebius {
 				FreeLibrary(_handle);
 			}
 
-			operator HMODULE() const {
+			operator HMODULE() const noexcept {
 				return _handle;
 			}
 
@@ -47,13 +47,28 @@ namespace mebius {
 
 		void Load(const std::string& ext) noexcept {
 			for (auto&& dir : fs::recursive_directory_iterator(_modsdir)) {
-				if (dir.path().extension() == ext) {
-					if (auto&& plugin = LoadLibraryExA(dir.path().string().c_str(), NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR)) {
+				if (dir.path().extension().string() == ext) {
+					if (auto&& plugin = LoadLibraryEx(dir.path().native().c_str(), NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR)) {
 						_plugins.emplace(std::move(plugin));
 					}
 				}
 			}
 		}
+
+		/*
+		* wstring実装
+		* 拡張子にワイド文字を使用することを考慮するならこちらを使用する
+		* 
+		void Load(const std::wstring& ext) noexcept {
+			for (auto&& dir : fs::recursive_directory_iterator(_modsdir)) {
+				if (dir.path().extension().native() == ext) {
+					if (auto&& plugin = LoadLibraryEx(dir.path().native().c_str(), NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR)) {
+						_plugins.emplace(std::move(plugin));
+					}
+				}
+			}
+		}
+		*/
 
 	private:
 		const fs::path& _modsdir;
