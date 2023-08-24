@@ -5,7 +5,7 @@
 #include "Plugin.hpp"
 #include <Windows.h>
 #include <filesystem>
-#include <vector>
+#include <unordered_set>
 
 namespace mebius {
 	namespace fs = std::filesystem;
@@ -27,9 +27,7 @@ namespace mebius {
 			for (auto&& dir : fs::recursive_directory_iterator(_modsdir)) {
 				if (dir.path().extension() == ext) {
 					if (auto&& plugin = LoadLibraryA(dir.path().string().c_str())) {
-						if (std::find(_plugins.begin(), _plugins.end(), plugin) == _plugins.end()) {
-							_plugins.emplace_back(std::move(plugin));
-						}
+						_plugins.emplace(std::move(plugin));
 					}
 				}
 			}
@@ -37,7 +35,7 @@ namespace mebius {
 
 	private:
 		const fs::path& _modsdir;
-		std::vector<HMODULE> _plugins;
+		std::unordered_set<HMODULE> _plugins;
 
 		PluginsLoader() noexcept : _modsdir(std::move((fs::current_path() /= MODS_DIRNAME))), _plugins() {}
 		~PluginsLoader() noexcept {
