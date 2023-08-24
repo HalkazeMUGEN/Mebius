@@ -10,32 +10,41 @@
 namespace mebius {
 	namespace fs = std::filesystem;
 
-	void FreePlugins(void);
+	constexpr static inline char MODS_DIRNAME[] = "mods";
 
 	class PluginsLoader {
 	public:
-		explicit PluginsLoader(const std::string& ext) : _extension(ext), _path(fs::current_path().string() + "\\mods\\") {
-			for (auto& p : fs::recursive_directory_iterator(_path))
-			{
-				if (p.path().extension() == ext) {
-					if (HMODULE lib = LoadLibraryA(p.path().string().c_str())) {
-						// ロードした情報を検索して被りがなければVectorに追加
-						if (std::find(_plugins.begin(), _plugins.end(), lib) == _plugins.end()) {
-							_plugins.push_back(std::move(lib));
+		static PluginsLoader& GetInstance() noexcept {
+			static PluginsLoader instance{};
+			return instance;
+		}
+		PluginsLoader(const PluginsLoader&) = delete;
+		PluginsLoader& operator=(const PluginsLoader&) = delete;
+		PluginsLoader(PluginsLoader&&) = delete;
+		PluginsLoader& operator=(PluginsLoader&&) = delete;
+
+		void Load(const std::string& ext) noexcept {
+			for (auto&& dir : fs::recursive_directory_iterator(_modsdir)) {
+				if (dir.path().extension() == ext) {
+					if (auto&& plugin = LoadLibraryA(dir.path().string().c_str())) {
+						if (std::find(_plugins.begin(), _plugins.end(), plugin) == _plugins.end()) {
+							_plugins.emplace_back(std::move(plugin));
 						}
 					}
 				}
 			}
 		}
-		static void free(void) {
-			for (auto&& h : _plugins) {
-				FreeLibrary(h);
+
+	private:
+		const fs::path& _modsdir;
+		std::vector<HMODULE> _plugins;
+
+		PluginsLoader() noexcept : _modsdir(std::move((fs::current_path() /= MODS_DIRNAME))), _plugins() {}
+		~PluginsLoader() noexcept {
+			for (auto&& plugin : _plugins) {
+				FreeLibrary(std::move(plugin));
 			}
 		}
-	private:
-		static std::vector<HMODULE> _plugins;
-		const std::string& _extension;
-		const std::string& _path;
 	};
 }
 
