@@ -48,7 +48,7 @@ namespace mebius {
 		void Load(const std::string& ext) noexcept {
 			for (auto&& dir : fs::recursive_directory_iterator(_modsdir)) {
 				if (dir.path().extension() == ext) {
-					if (auto&& plugin = LoadLibraryA(dir.path().string().c_str())) {
+					if (auto&& plugin = LoadLibraryExA(dir.path().string().c_str(), NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR)) {
 						_plugins.emplace(std::move(plugin));
 					}
 				}
