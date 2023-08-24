@@ -26,6 +26,10 @@ namespace mebius {
 					FreeLibrary(_handle);
 				}
 
+				bool operator==(const HModuleWrapper& left) const noexcept {
+					return _handle == left._handle;
+				}
+
 				operator HMODULE() const noexcept {
 					return _handle;
 				}
@@ -34,7 +38,21 @@ namespace mebius {
 				HMODULE _handle;
 			};
 		}
+	}
+}
 
+namespace std {
+	template<>
+	class std::hash<mebius::plugin::internal::HModuleWrapper> {
+	public:
+		size_t operator()(const mebius::plugin::internal::HModuleWrapper& mod) const noexcept {
+			return std::bit_cast<size_t>((HANDLE)mod);
+		}
+	};
+}
+
+namespace mebius {
+	namespace plugin {
 		class PluginsLoader {
 		public:
 			static PluginsLoader& GetInstance() noexcept {
