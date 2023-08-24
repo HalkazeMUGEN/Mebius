@@ -19,7 +19,7 @@ namespace mebius {
 			{
 				if (p.path().extension() == ext) {
 					if (HMODULE lib = LoadLibraryA(p.path().string().c_str())) {
-						// ƒ[ƒh‚µ‚½î•ñ‚ğŒŸõ‚µ‚Ä”í‚è‚ª‚È‚¯‚ê‚ÎVector‚É’Ç‰Á
+						// ãƒ­ãƒ¼ãƒ‰ã—ãŸæƒ…å ±ã‚’æ¤œç´¢ã—ã¦è¢«ã‚ŠãŒãªã‘ã‚Œã°Vectorã«è¿½åŠ 
 						if (std::find(_plugins.begin(), _plugins.end(), lib) == _plugins.end()) {
 							_plugins.push_back(std::move(lib));
 						}
