@@ -7,9 +7,9 @@
 #include <filesystem>
 #include <vector>
 
-namespace fs = std::filesystem;
-
 namespace mebius {
+	namespace fs = std::filesystem;
+
 	void FreePlugins(void);
 
 	class PluginsLoader {
