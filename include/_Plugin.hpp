@@ -5,37 +5,96 @@
 #include "Plugin.hpp"
 #include <Windows.h>
 #include <filesystem>
-#include <vector>
-
-namespace fs = std::filesystem;
+#include <unordered_set>
 
 namespace mebius {
-	void FreePlugins(void);
+	namespace plugin {
+		namespace fs = std::filesystem;
 
-	class PluginsLoader {
+		constexpr static inline char MODS_DIRNAME[] = "mods";
+
+		namespace internal {
+			class HModuleWrapper {
+			public:
+				HModuleWrapper(HMODULE&& handle) noexcept : _handle(handle) {}
+				HModuleWrapper(const HModuleWrapper&) = delete;
+				HModuleWrapper& operator=(const HModuleWrapper&) = delete;
+				HModuleWrapper(HModuleWrapper&&) = delete;
+				HModuleWrapper& operator=(HModuleWrapper&&) = delete;
+
+				~HModuleWrapper() noexcept {
+					FreeLibrary(_handle);
+				}
+
+				bool operator==(const HModuleWrapper& left) const noexcept {
+					return _handle == left._handle;
+				}
+
+				operator HMODULE() const noexcept {
+					return _handle;
+				}
+
+			private:
+				HMODULE _handle;
+			};
+		}
+	}
+}
+
+namespace std {
+	template<>
+	class std::hash<mebius::plugin::internal::HModuleWrapper> {
 	public:
-		explicit PluginsLoader(const std::string& ext) : _extension(ext), _path(fs::current_path().string() + "\\mods\\") {
-			for (auto& p : fs::recursive_directory_iterator(_path))
-			{
-				if (p.path().extension() == ext) {
-					if (HMODULE lib = LoadLibraryA(p.path().string().c_str())) {
-						// ÉçÅ[ÉhÇµÇΩèÓïÒÇåüçıÇµÇƒîÌÇËÇ™Ç»ÇØÇÍÇŒVectorÇ…í«â¡
-						if (std::find(_plugins.begin(), _plugins.end(), lib) == _plugins.end()) {
-							_plugins.push_back(std::move(lib));
+		size_t operator()(const mebius::plugin::internal::HModuleWrapper& mod) const noexcept {
+			return std::bit_cast<size_t>((HANDLE)mod);
+		}
+	};
+}
+
+namespace mebius {
+	namespace plugin {
+		class PluginsLoader {
+		public:
+			static PluginsLoader& GetInstance() noexcept {
+				static PluginsLoader instance{};
+				return instance;
+			}
+			PluginsLoader(const PluginsLoader&) = delete;
+			PluginsLoader& operator=(const PluginsLoader&) = delete;
+			PluginsLoader(PluginsLoader&&) = delete;
+			PluginsLoader& operator=(PluginsLoader&&) = delete;
+
+			void Load(const std::string& ext) noexcept {
+				for (auto&& dir : fs::recursive_directory_iterator(_modsdir)) {
+					if (dir.path().extension().string() == ext) {
+						if (auto&& plugin = LoadLibraryEx(dir.path().native().c_str(), NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR)) {
+							_plugins.emplace(std::move(plugin));
 						}
 					}
 				}
 			}
-		}
-		static void free(void) {
-			for (auto&& h : _plugins) {
-				FreeLibrary(h);
-			}
-		}
-	private:
-		static std::vector<HMODULE> _plugins;
-		const std::string& _extension;
-		const std::string& _path;
-	};
-}
 
+			/*
+			* wstringÂÆüË£Ö
+			* Êã°ÂºµÂ≠ê„Å´„ÉØ„Ç§„ÉâÊñáÂ≠ó„Çí‰ΩøÁî®„Åô„Çã„Åì„Å®„ÇíËÄÉÊÖÆ„Åô„Çã„Å™„Çâ„Åì„Å°„Çâ„Çí‰ΩøÁî®„Åô„Çã
+			*
+			void Load(const std::wstring& ext) noexcept {
+				for (auto&& dir : fs::recursive_directory_iterator(_modsdir)) {
+					if (dir.path().extension().native() == ext) {
+						if (auto&& plugin = LoadLibraryEx(dir.path().native().c_str(), NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR)) {
+							_plugins.emplace(std::move(plugin));
+						}
+					}
+				}
+			}
+			*/
+
+		private:
+			const fs::path& _modsdir;
+			std::unordered_set<internal::HModuleWrapper> _plugins;
+
+			PluginsLoader() noexcept : _modsdir(std::move((fs::current_path() /= MODS_DIRNAME))), _plugins() {}
+			~PluginsLoader() noexcept = default;
+		};
+	}
+}
