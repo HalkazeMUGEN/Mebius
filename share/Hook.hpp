@@ -171,83 +171,83 @@ namespace mebius {
 					ret 4
 				};
 			}
-		}
 
-		void cushion_vfv() {
-			uintptr_t f = std::bit_cast<uintptr_t>(&internal::hook_vfv);
-			uintptr_t me = std::bit_cast<uintptr_t>(&cushion_vfv);
-			uintptr_t address = f - (me + 5);
-			__asm {
-				jmp address;
+			void cushion_vfv() {
+				uintptr_t f = std::bit_cast<uintptr_t>(&hook_vfv);
+				uintptr_t me = std::bit_cast<uintptr_t>(&cushion_vfv);
+				uintptr_t address = f - (me + 5);
+				__asm {
+					jmp address;
+				}
 			}
-		}
 
-		template <typename T>
-		void cushion_tfv() {
-			uintptr_t f = std::bit_cast<uintptr_t>(&internal::hook_tfv<T>);
-			uintptr_t me = std::bit_cast<uintptr_t>(&cushion_tfv<T>);
-			uintptr_t address = f - (me + 5);
-			__asm {
-				jmp address;
+			template <typename T>
+			void cushion_tfv() {
+				uintptr_t f = std::bit_cast<uintptr_t>(&hook_tfv<T>);
+				uintptr_t me = std::bit_cast<uintptr_t>(&cushion_tfv<T>);
+				uintptr_t address = f - (me + 5);
+				__asm {
+					jmp address;
+				}
 			}
-		}
 
-		template <typename... Args>
-		void cushion_vfa() {
-			uintptr_t f = std::bit_cast<uintptr_t>(&internal::hook_vfa<Args...>);
-			uintptr_t me = std::bit_cast<uintptr_t>(&cushion_vfa<Args...>);
-			uintptr_t address = f - (me + 5);
-			__asm {
-				jmp address;
+			template <typename... Args>
+			void cushion_vfa() {
+				uintptr_t f = std::bit_cast<uintptr_t>(&hook_vfa<Args...>);
+				uintptr_t me = std::bit_cast<uintptr_t>(&cushion_vfa<Args...>);
+				uintptr_t address = f - (me + 5);
+				__asm {
+					jmp address;
+				}
 			}
-		}
 
-		template <typename T, typename... Args>
-		void cushion_tfa() {
-			uintptr_t f = std::bit_cast<uintptr_t>(&internal::hook_tfa<T, Args...>);
-			uintptr_t me = std::bit_cast<uintptr_t>(&cushion_tfa<T, Args...>);
-			uintptr_t address = f - (me + 5);
-			__asm {
-				jmp address;
+			template <typename T, typename... Args>
+			void cushion_tfa() {
+				uintptr_t f = std::bit_cast<uintptr_t>(&hook_tfa<T, Args...>);
+				uintptr_t me = std::bit_cast<uintptr_t>(&cushion_tfa<T, Args...>);
+				uintptr_t address = f - (me + 5);
+				__asm {
+					jmp address;
+				}
 			}
 		}
 
 		void HookOnHead(internal::pvfv_t caller, const internal::pvfv_t callee) noexcept {
-			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_vfv));
+			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_vfv));
 		}
 
 		template <typename T>
 		void HookOnHead(internal::ptfv_t<T> caller, const internal::pvfv_t callee) noexcept {
-			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_tfv<T>));
+			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_tfv<T>));
 		}
 
 		template <typename... Args>
 		void HookOnHead(internal::pvfa_t<Args...> caller, const internal::pvfa_t<Args...> callee) noexcept {
-			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_vfa<Args...>));
+			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_vfa<Args...>));
 		}
 
 		template <typename T, typename... Args>
 		void HookOnHead(internal::ptfa_t<T, Args...> caller, const internal::pvfa_t<Args...> callee) noexcept {
-			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_tfa<T, Args...>));
+			_SetHookOnHead(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_tfa<T, Args...>));
 		}
 
 		void HookOnTail(internal::pvfv_t caller, const internal::pvfv_t callee) noexcept {
-			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_vfv));
+			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_vfv));
 		}
 
 		template <typename T>
 		void HookOnTail(internal::ptfv_t<T> caller, const internal::ptft_t<T> callee) noexcept {
-			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_tfv<T>));
+			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_tfv<T>));
 		}
 
 		template <typename... Args>
 		void HookOnTail(internal::pvfa_t<Args...> caller, const internal::pvfa_t<Args...> callee) noexcept {
-			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_vfa<Args...>));
+			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_vfa<Args...>));
 		}
 
 		template <typename T, typename... Args>
 		void HookOnTail(internal::ptfa_t<T, Args...> caller, const internal::ptfta_t<T, Args...> callee) noexcept {
-			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&cushion_tfa<T, Args...>));
+			_SetHookOnTail(std::bit_cast<uint32_t>(caller), std::bit_cast<const void*>(callee), std::bit_cast<const void*>(&internal::cushion_tfa<T, Args...>));
 		}
 	}
 }
